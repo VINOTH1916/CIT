@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ex 1: Skip List vs AVL Tree</title>
+<style>
+:root{--bg:#f5f7fa;--surface:#fff;--ink:#14213d;--muted:#5b6678;--line:#d9dfe8;--sl:#0b6e99;--avl:#c2410c;--ok:#0f766e;--accent:#14213d;--accent-ink:#fff;
+ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1420;--surface:#161e2e;--ink:#e6ebf4;--muted:#9aa6bb;--line:#2a3550;--sl:#4cc3f0;--avl:#fb923c;--ok:#5eead4;--accent:#4cc3f0;--accent-ink:#0e1420;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e1420;--surface:#161e2e;--ink:#e6ebf4;--muted:#9aa6bb;--line:#2a3550;--sl:#4cc3f0;--avl:#fb923c;--ok:#5eead4;--accent:#4cc3f0;--accent-ink:#0e1420;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Source Sans 3","Segoe UI",system-ui,sans-serif}
+main{max-width:1040px;margin:0 auto;padding:28px 18px 60px}
+h1{font:700 1.7rem/1.2 "Source Serif 4",Georgia,serif;margin:0 0 6px}
+h2{font:600 1.15rem/1.3 "Source Serif 4",Georgia,serif;margin:0 0 12px}
+.sub{color:var(--muted);margin:0 0 20px;max-width:70ch}
+.meta{display:flex;flex-wrap:wrap;gap:6px 18px;color:var(--muted);font-size:.9rem;margin-bottom:22px}
+section{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:18px;margin-bottom:18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px}
+label{display:block;font-size:.88rem;font-weight:600;margin-bottom:4px}
+input{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+input:focus-visible,button:focus-visible{outline:2px solid var(--sl);outline-offset:2px}
+small{display:block;color:var(--muted);font-size:.78rem;margin-top:3px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:16px}
+button{font:600 1rem inherit;font-family:inherit;padding:9px 18px;border-radius:6px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);cursor:pointer}
+button.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+button:disabled{opacity:.55;cursor:progress}
+#status{color:var(--muted);font-size:.9rem}
+#err{color:#b91c1c;font-size:.9rem;margin-top:10px}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:620px;font-variant-numeric:tabular-nums;font-size:.92rem}
+th,td{padding:7px 10px;text-align:right;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child,th:nth-child(2),td:nth-child(2){text-align:left}
+th{font-weight:600;color:var(--muted)}
+tr.sep td{border-bottom:2px solid var(--line)}
+.win{color:var(--ok);font-weight:700}
+.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px}
+.chart{position:relative;height:320px}
+figcaption{font-size:.85rem;color:var(--muted);margin-top:6px}
+figure{margin:0}
+.kv{display:flex;flex-wrap:wrap;gap:8px 28px;margin-bottom:10px}
+.kv b{font-variant-numeric:tabular-nums}
+code{font-family:ui-monospace,Consolas,monospace;font-size:.88em;word-break:break-word}
+#result p,#analysis p{margin:0 0 10px;max-width:78ch}
+.hide{display:none}
+</style>
+</head>
+<body>
+<main>
+<h1>Skip list vs AVL tree as an ordered index</h1>
+<p class="sub">Ex 1 · CP25C01 Advanced Data Structures and Algorithms. Set the workload, run the benchmark in your browser, and compare insert, search and delete on a probabilistic skip list and an AVL tree.</p>
+<div class="meta"><span>Course outcome: CO1</span><span>Skip list: geometric levels, p configurable</span><span>AVL: full rebalancing with rotations</span></div>
+
+<section aria-labelledby="in">
+<h2 id="in">Inputs</h2>
+<div class="grid">
+<div><label for="sizes">Key set sizes (n)</label><input id="sizes" value="10000, 50000, 100000" inputmode="numeric"><small>Comma-separated, up to 6 sizes, 100 to 500,000 each.</small></div>
+<div><label for="range">Key range factor</label><input id="range" type="number" value="10" min="2" max="100"><small>Keys drawn from 1 to factor × n.</small></div>
+<div><label for="p">Skip list probability p</label><input id="p" type="number" value="0.5" min="0.1" max="0.9" step="0.05"><small>0.1 to 0.9. Manual uses 0.5.</small></div>
+<div><label for="maxl">Skip list max level</label><input id="maxl" type="number" value="20" min="4" max="32"><small>4 to 32.</small></div>
+<div><label for="seed">Random seed</label><input id="seed" type="number" value="42" min="0"><small>Same seed gives the same keys.</small></div>
+</div>
+<div class="grid" style="margin-top:14px">
+<div><label for="dn">Demo key count</label><input id="dn" type="number" value="200" min="10" max="1000"><small>Random keys inserted for the range query demo.</small></div>
+<div><label for="lo">Range query low</label><input id="lo" type="number" value="100"></div>
+<div><label for="hi">Range query high</label><input id="hi" type="number" value="160"></div>
+<div><label for="dmax">Demo key maximum</label><input id="dmax" type="number" value="1000" min="50" max="100000"><small>Demo keys drawn from 1 to this value.</small></div>
+</div>
+<div class="row"><button id="run">Run benchmark</button><button id="reset" class="ghost" type="button">Reset to manual values</button><span id="status" role="status"></span></div>
+<div id="err" role="alert"></div>
+</section>
+
+<div id="out" class="hide">
+<section aria-labelledby="ot">
+<h2 id="ot">Output</h2>
+<div class="scroll"><table id="tbl"><thead><tr><th>N</th><th>Op</th><th>SkipList ms</th><th>AVL ms</th><th>SL cmp/op</th><th>AVL cmp/op</th></tr></thead><tbody></tbody></table></div>
+<p style="margin:14px 0 8px" class="kv"><span>Skip list levels used: <b id="lev"></b></span><span>Range query [<b id="rlo"></b>, <b id="rhi"></b>]: <b id="rcount"></b> keys</span></p>
+<code id="rq"></code>
+</section>
+
+<section aria-labelledby="gt">
+<h2 id="gt">Graphical analysis</h2>
+<div class="charts">
+<figure><div class="chart"><canvas id="c1" role="img" aria-label="Bar chart of operation time in milliseconds for skip list and AVL tree at the largest n"></canvas></div><figcaption id="cap1"></figcaption></figure>
+<figure><div class="chart"><canvas id="c2" role="img" aria-label="Line chart of key comparisons per search against n with log2 n reference lines"></canvas></div><figcaption>Comparisons per search against n (log axis), with log₂ n and 2 log₂ n reference lines.</figcaption></figure>
+</div>
+</section>
+
+<section aria-labelledby="rt"><h2 id="rt">Result</h2><div id="result"></div></section>
+<section aria-labelledby="an"><h2 id="an">Analysis</h2><div id="analysis"></div></section>
+</div>
+<p class="sub" style="font-size:.85rem">Timings come from your browser’s JavaScript engine, so absolute milliseconds differ from the Python run in the manual. The comparison counts and trends are what matter.</p>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+// ---------- seeded RNG ----------
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+let rnd=Math.random;
+function sampleRange(max,n){const s=new Set();while(s.size<n)s.add(1+Math.floor(rnd()*max));return [...s]}
+function sampleArr(a,n){a=a.slice();for(let i=0;i<n;i++){const j=i+Math.floor(rnd()*(a.length-i));[a[i],a[j]]=[a[j],a[i]]}return a.slice(0,n)}
+
+// ---------- Skip list ----------
+class SLNode{constructor(k,v,l){this.key=k;this.val=v;this.fwd=new Array(l+1).fill(null)}}
+class SkipList{
+ constructor(max,p){this.MAX=max;this.p=p;this.level=0;this.head=new SLNode(null,null,max);this.size=0;this.cmp=0}
+ _rl(){let l=0;while(rnd()<this.p&&l<this.MAX)l++;return l}
+ _find(key){const upd=new Array(this.MAX+1);let x=this.head;
+  for(let i=this.level;i>=0;i--){while(x.fwd[i]!==null&&x.fwd[i].key<key){this.cmp++;x=x.fwd[i]}this.cmp++;upd[i]=x}
+  return [upd,x.fwd[0]]}
+ insert(k,v){const [upd,x]=this._find(k);if(x!==null&&x.key===k){x.val=v;return}
+  const l=this._rl();if(l>this.level){for(let i=this.level+1;i<=l;i++)upd[i]=this.head;this.level=l}
+  const n=new SLNode(k,v,l);for(let i=0;i<=l;i++){n.fwd[i]=upd[i].fwd[i];upd[i].fwd[i]=n}this.size++}
+ search(k){let x=this.head;for(let i=this.level;i>=0;i--){while(x.fwd[i]!==null&&x.fwd[i].key<k){this.cmp++;x=x.fwd[i]}this.cmp++}
+  x=x.fwd[0];return x!==null&&x.key===k?x.val:null}
+ delete(k){const [upd,x]=this._find(k);if(x===null||x.key!==k)return false;
+  for(let i=0;i<=this.level;i++){if(upd[i].fwd[i]!==x)break;upd[i].fwd[i]=x.fwd[i]}
+  while(this.level>0&&this.head.fwd[this.level]===null)this.level--;this.size--;return true}
+ range(lo,hi){let x=this.head;for(let i=this.level;i>=0;i--){while(x.fwd[i]!==null&&x.fwd[i].key<lo)x=x.fwd[i]}
+  x=x.fwd[0];const out=[];while(x!==null&&x.key<=hi){out.push(x.key);x=x.fwd[0]}return out}
+}
+
+// ---------- AVL ----------
+class AVLNode{constructor(k,v){this.key=k;this.val=v;this.left=null;this.right=null;this.h=1}}
+const H=n=>n?n.h:0, updH=n=>{n.h=1+Math.max(H(n.left),H(n.right))}, bal=n=>H(n.left)-H(n.right);
+function rotR(z){const y=z.left;z.left=y.right;y.right=z;updH(z);updH(y);return y}
+function rotL(z){const y=z.right;z.right=y.left;y.left=z;updH(z);updH(y);return y}
+function rebalance(n){updH(n);const b=bal(n);
+ if(b>1){if(bal(n.left)<0)n.left=rotL(n.left);return rotR(n)}
+ if(b<-1){if(bal(n.right)>0)n.right=rotR(n.right);return rotL(n)}
+ return n}
+class AVL{
+ constructor(){this.root=null;this.cmp=0}
+ insert(k,v){this.root=this._ins(this.root,k,v)}
+ _ins(n,k,v){if(!n)return new AVLNode(k,v);this.cmp++;
+  if(k<n.key)n.left=this._ins(n.left,k,v);else if(k>n.key)n.right=this._ins(n.right,k,v);else{n.val=v;return n}
+  return rebalance(n)}
+ search(k){let n=this.root;while(n){this.cmp++;if(k===n.key)return n.val;n=k<n.key?n.left:n.right}return null}
+ delete(k){this.root=this._del(this.root,k)}
+ _del(n,k){if(!n)return null;this.cmp++;
+  if(k<n.key)n.left=this._del(n.left,k);else if(k>n.key)n.right=this._del(n.right,k);
+  else{if(!n.left||!n.right)return n.left||n.right;let s=n.right;while(s.left)s=s.left;n.key=s.key;n.val=s.val;n.right=this._del(n.right,s.key)}
+  return rebalance(n)}
+}
+
+// ---------- benchmark ----------
+function timeit(fn,keys){const t=performance.now();for(let i=0;i<keys.length;i++)fn(keys[i]);return performance.now()-t}
+const $=id=>document.getElementById(id), tick=()=>new Promise(r=>setTimeout(r,20));
+const fmt=(x,d=1)=>x.toFixed(d);
+let charts=[];
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+function readInputs(){
+ const sizes=$('sizes').value.split(',').map(s=>parseInt(s.trim(),10));
+ if(!sizes.length||sizes.length>6||sizes.some(n=>!(n>=100&&n<=500000)))throw new Error('Sizes must be 1 to 6 whole numbers between 100 and 500,000, separated by commas.');
+ const v=(id,lo,hi,name)=>{const x=parseFloat($(id).value);if(!(x>=lo&&x<=hi))throw new Error(name+' must be between '+lo+' and '+hi+'.');return x};
+ const o={sizes:[...new Set(sizes)].sort((a,b)=>a-b),
+  factor:v('range',2,100,'Key range factor'),p:v('p',0.1,0.9,'Probability p'),maxl:Math.round(v('maxl',4,32,'Max level')),
+  seed:Math.round(v('seed',0,4294967295,'Seed')),dn:Math.round(v('dn',10,1000,'Demo key count')),
+  dmax:Math.round(v('dmax',50,100000,'Demo key maximum')),lo:parseFloat($('lo').value),hi:parseFloat($('hi').value)};
+ if(isNaN(o.lo)||isNaN(o.hi)||o.lo>o.hi)throw new Error('Range query low must be a number not greater than high.');
+ if(o.dn>o.dmax)throw new Error('Demo key count cannot exceed the demo key maximum.');
+ return o}
+
+async function run(){
+ $('err').textContent='';let o;
+ try{o=readInputs()}catch(e){$('err').textContent=e.message;return}
+ $('run').disabled=true;rnd=mulberry32(o.seed);
+ const rows=[];
+ for(const N of o.sizes){
+  $('status').textContent='Running n = '+N.toLocaleString()+' …';await tick();
+  const keys=sampleRange(o.factor*N,N), probe=sampleArr(keys,Math.floor(N/2));
+  const sl=new SkipList(o.maxl,o.p), avl=new AVL();
+  for(const [op,sf,af,data] of [['insert',k=>sl.insert(k,k),k=>avl.insert(k,k),keys],['search',k=>sl.search(k),k=>avl.search(k),probe],['delete',k=>sl.delete(k),k=>avl.delete(k),probe]]){
+   sl.cmp=avl.cmp=0;const ts=timeit(sf,data),ta=timeit(af,data);
+   rows.push({N,op,ts,ta,cs:sl.cmp/data.length,ca:avl.cmp/data.length});
+  }
+ }
+ const sl=new SkipList(o.maxl,o.p);for(const k of sampleRange(o.dmax,o.dn))sl.insert(k,k);
+ const rq=sl.range(o.lo,o.hi);
+ render(o,rows,sl.level+1,rq);
+ $('status').textContent='Done.';$('run').disabled=false}
+
+function render(o,rows,levels,rq){
+ $('out').classList.remove('hide');
+ const tb=$('tbl').querySelector('tbody');tb.innerHTML='';
+ rows.forEach((r,i)=>{const tr=document.createElement('tr');if(r.op==='delete')tr.className='sep';
+  const w=r.ts<r.ta;tr.innerHTML=`<td>${r.N.toLocaleString()}</td><td>${r.op}</td><td class="${w?'win':''}">${fmt(r.ts)}</td><td class="${w?'':'win'}">${fmt(r.ta)}</td><td>${fmt(r.cs)}</td><td>${fmt(r.ca)}</td>`;tb.appendChild(tr)});
+ $('lev').textContent=levels;$('rlo').textContent=o.lo;$('rhi').textContent=o.hi;$('rcount').textContent=rq.length;
+ $('rq').textContent=rq.length?'['+rq.join(', ')+']':'No keys fall in this range for the generated demo set.';
+
+ const big=o.sizes[o.sizes.length-1], at=op=>rows.find(r=>r.N===big&&r.op===op);
+ const ins=at('insert'),sea=at('search'),del=at('delete');
+ $('cap1').textContent='Operation time at n = '+big.toLocaleString()+' (lower is faster).';
+
+ const ink=css('--ink'),muted=css('--muted'),line=css('--line'),cs=css('--sl'),ca=css('--avl');
+ charts.forEach(c=>c.destroy());charts=[];
+ if(typeof Chart==='undefined'){$('cap1').textContent+=' (Chart library could not load; see the table above.)';}
+ else{
+  Chart.defaults.color=muted;Chart.defaults.font.family='"Source Sans 3","Segoe UI",system-ui,sans-serif';
+  const base={responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:ink}}}};
+  charts.push(new Chart($('c1'),{type:'bar',data:{labels:['insert','search','delete'],datasets:[
+   {label:'Skip list',data:[ins.ts,sea.ts,del.ts],backgroundColor:cs},{label:'AVL tree',data:[ins.ta,sea.ta,del.ta],backgroundColor:ca}]},
+   options:{...base,scales:{y:{title:{display:true,text:'Time (ms)',color:muted},grid:{color:line},beginAtZero:true},x:{grid:{display:false}}}}}));
+  const s=rows.filter(r=>r.op==='search');
+  const pts=f=>s.map(r=>({x:r.N,y:f(r)}));
+  charts.push(new Chart($('c2'),{type:'line',data:{datasets:[
+   {label:'Skip list',data:pts(r=>r.cs),borderColor:cs,backgroundColor:cs,pointRadius:4,tension:.2},
+   {label:'AVL tree',data:pts(r=>r.ca),borderColor:ca,backgroundColor:ca,pointRadius:4,tension:.2},
+   {label:'log₂ n',data:pts(r=>Math.log2(r.N)),borderColor:muted,borderDash:[6,4],pointRadius:0},
+   {label:'2 log₂ n',data:pts(r=>2*Math.log2(r.N)),borderColor:muted,borderDash:[2,3],pointRadius:0}]},
+   options:{...base,scales:{x:{type:'logarithmic',title:{display:true,text:'n (log scale)',color:muted},grid:{color:line}},y:{title:{display:true,text:'Comparisons per search',color:muted},grid:{color:line},beginAtZero:true}}}}));
+ }
+
+ const faster=(a,b)=>a<b?'skip list':'AVL tree';
+ const ratio=sea.cs/sea.ca, expect=(1/o.p).toFixed(2);
+ $('result').innerHTML=`<p>The skip list and the AVL tree were implemented and benchmarked for ${o.sizes.map(n=>n.toLocaleString()).join(', ')} keys. At n = ${big.toLocaleString()} the ${faster(ins.ts,ins.ta)} was faster for insertion (${fmt(ins.ts)} ms vs ${fmt(ins.ta)} ms), the ${faster(sea.ts,sea.ta)} for search (${fmt(sea.ts)} ms vs ${fmt(sea.ta)} ms) and the ${faster(del.ts,del.ta)} for deletion (${fmt(del.ts)} ms vs ${fmt(del.ta)} ms). The skip list also answers ordered range queries with a simple level-0 walk.</p>`;
+ $('analysis').innerHTML=`<p><b>Time:</b> insertion and deletion in the skip list only rewire local pointers, while the AVL tree updates heights and may rotate on the way back up the recursion. Search in the AVL tree follows a short deterministic path with a height of at most 1.44 log₂ n, so it tends to need fewer steps.</p>
+ <p><b>Comparisons:</b> at n = ${big.toLocaleString()} a search takes ${fmt(sea.cs)} comparisons in the skip list and ${fmt(sea.ca)} in the AVL tree, a ratio of ${fmt(ratio,2)}. The expected skip-list search cost is (log<sub>1/p</sub> n)/p, which is about ${expect} × log<sub>1/p</sub> n for p = ${o.p}. Both curves grow roughly linearly on the log axis, which confirms O(log n) behaviour.</p>
+ <p><b>Trade-off:</b> the skip list spends more comparisons per search in return for rotation-free updates, which is why it is attractive for concurrent, order-book style indexes.</p>`;
+}
+$('run').addEventListener('click',run);
+$('reset').addEventListener('click',()=>{const d={sizes:'10000, 50000, 100000',range:10,p:0.5,maxl:20,seed:42,dn:200,lo:100,hi:160,dmax:1000};for(const k in d)$(k).value=d[k]});
+</script>
+</body>
+</html>
