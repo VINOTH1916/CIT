@@ -88,7 +88,7 @@ footer{text-align:center;padding:20px;font-size:.78rem;color:var(--muted)}
   <div class="card">
     <div class="card-header"><div class="card-icon icon-v">⚙️</div><div><h2>Inputs</h2><p>Configure matrix sizes, cut-off threshold and seed</p></div></div>
     <div class="grid">
-      <div class="field"><label>Matrix sizes (comma)</label><input id="sizes" value="16,32,64,128"><small>n×n integer matrices to test</small></div>
+      <div class="field"><label>Matrix sizes (comma)</label><input id="sizes" value="16,32,64,128"><small>Each entered n becomes one chart point, in the same order.</small></div>
       <div class="field"><label>Strassen Cut-off</label><input type="number" id="cutoff" value="16" min="2" max="64"><small>Use naive below this size</small></div>
       <div class="field"><label>Seed</label><input type="number" id="seed" value="11"></div>
     </div>
@@ -103,7 +103,7 @@ footer{text-align:center;padding:20px;font-size:.78rem;color:var(--muted)}
     <div class="card">
       <div class="card-header"><div class="card-icon icon-v">📊</div><div><h2>Benchmark Results</h2></div></div>
       <div class="scroll"><table id="tbl">
-        <thead><tr><th>n</th><th>Naive (ms)</th><th>Strassen (ms)</th><th>Speed-up</th><th>Mult Ratio</th><th>Correct?</th></tr></thead>
+        <thead><tr><th>Input n</th><th>Strassen runs at</th><th>Naive (ms)</th><th>Strassen (ms)</th><th>Speed-up</th><th>Mult Ratio</th><th>Correct?</th></tr></thead>
         <tbody></tbody>
       </table></div>
     </div>
@@ -216,7 +216,8 @@ function mateq(A,B,n){for(let i=0;i<n;i++)for(let j=0;j<n;j++)if(Math.abs(A[i][j
 async function run(){
   const btn=$('run');btn.disabled=true;$('status').textContent='Running…';
   await new Promise(r=>setTimeout(r,20));
-  const ns=$('sizes').value.split(',').map(s=>parseInt(s.trim())).filter(x=>x>=2);
+  const ns=[...new Set($('sizes').value.split(',').map(s=>Number(s.trim())).filter(Number.isInteger).filter(x=>x>=2))];
+  if(!ns.length){$('status').textContent='Enter at least one integer n ≥ 2.';btn.disabled=false;return;}
   const cutoff=parseInt($('cutoff').value)||16;
   const rng=mulberry32(parseInt($('seed').value)||11);
   const rows=[];
@@ -226,7 +227,7 @@ async function run(){
     const t0=performance.now();const R1=naive(A,B,n);const tN=performance.now()-t0;const naiveMuls=MULS;
     MULS=0;
     const t1=performance.now();const R2=multiply(A,B,n,cutoff);const tS=performance.now()-t1;const sMuls=MULS;
-    rows.push({n,tN,tS,speedup:tN/tS,ratio:sMuls/naiveMuls,ok:mateq(R1,R2,n)});
+    rows.push({n,padded:nextPow2(n),tN,tS,speedup:tN/tS,ratio:sMuls/naiveMuls,ok:mateq(R1,R2,n)});
     await new Promise(r=>setTimeout(r,5));
   }
   renderTable(rows);renderCharts(rows);renderText(rows,cutoff);
@@ -238,7 +239,7 @@ function renderTable(rows){
   rows.forEach(r=>{
     const faster=r.tS<r.tN;
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${r.n}</td><td class="${faster?'':'win'}">${r.tN.toFixed(2)}</td><td class="${faster?'win':''}">${r.tS.toFixed(2)}</td><td>${r.speedup.toFixed(2)}x</td><td>${r.ratio.toFixed(3)}</td><td>${r.ok?'✓':'✗'}</td>`;
+    tr.innerHTML=`<td>${r.n} × ${r.n}</td><td>${r.padded} × ${r.padded}${r.padded!==r.n?' (padded)':''}</td><td class="${faster?'':'win'}">${r.tN.toFixed(2)}</td><td class="${faster?'win':''}">${r.tS.toFixed(2)}</td><td>${r.speedup.toFixed(2)}x</td><td>${r.ratio.toFixed(3)}</td><td>${r.ok?'✓':'✗'}</td>`;
     tb.appendChild(tr);
   });
 }
@@ -246,16 +247,18 @@ function renderCharts(rows){
   destroyCharts();
   const muted='#64748b',line='#e2e8f0';
   Chart.defaults.color=muted;Chart.defaults.font.family='"Segoe UI",system-ui,sans-serif';
-  charts.push(new Chart($('c1'),{type:'bar',data:{labels:rows.map(r=>`n=${r.n}`),datasets:[
+  const labels=rows.map(r=>`n=${r.n}`);
+  const padding=rows.map(r=>r.padded===r.n?'No padding':`Padded to ${r.padded}`);
+  charts.push(new Chart($('c1'),{type:'bar',data:{labels,datasets:[
     {label:'Naive (ms)',data:rows.map(r=>r.tN),backgroundColor:'#dc2626',borderRadius:5},
     {label:'Strassen (ms)',data:rows.map(r=>r.tS),backgroundColor:'#7c3aed',borderRadius:5}
-  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'}},
-    scales:{y:{title:{display:true,text:'Time (ms)'},beginAtZero:true,grid:{color:line}},x:{grid:{display:false}}}}}));
-  charts.push(new Chart($('c2'),{type:'line',data:{labels:rows.map(r=>`n=${r.n}`),datasets:[
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'},tooltip:{callbacks:{afterLabel:ctx=>padding[ctx.dataIndex]}}},
+    scales:{y:{title:{display:true,text:'Time (ms)'},beginAtZero:true,grid:{color:line}},x:{title:{display:true,text:'Matrix size entered by user (n)'},grid:{display:false}}}}}));
+  charts.push(new Chart($('c2'),{type:'line',data:{labels,datasets:[
     {label:'Mult ratio',data:rows.map(r=>r.ratio),borderColor:'#7c3aed',backgroundColor:'#7c3aed',pointRadius:5,tension:.3,borderWidth:2.5},
     {label:'Baseline (1.0)',data:rows.map(()=>1),borderColor:'#dc2626',borderDash:[5,4],pointRadius:0,borderWidth:1.5}
-  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'}},
-    scales:{y:{title:{display:true,text:'Ratio (Strassen/Naive)'},grid:{color:line}},x:{grid:{display:false}}}}}));
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'},tooltip:{callbacks:{afterLabel:ctx=>padding[ctx.dataIndex]}}},
+    scales:{y:{title:{display:true,text:'Ratio (Strassen/Naive)'},grid:{color:line}},x:{title:{display:true,text:'Matrix size entered by user (n)'},grid:{display:false}}}}}));
 }
 function renderText(rows,cutoff){
   const best=rows.reduce((a,b)=>b.speedup>a.speedup?b:a);
