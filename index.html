@@ -25,14 +25,49 @@ header {
 }
 header h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: .01em; }
 header p  { margin-top: .4rem; font-size: .9rem; opacity: .8; }
-
 .badge {
   display: inline-block; margin-top: .75rem;
   background: rgba(255,255,255,.15); border-radius: 20px;
   padding: .25rem .85rem; font-size: .8rem; letter-spacing: .03em;
 }
 
-main { max-width: 900px; margin: 2rem auto; padding: 0 1rem 3rem; }
+/* student info strip */
+.student-strip {
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  padding: .6rem 1.5rem;
+  display: flex; flex-wrap: wrap; gap: .5rem 2rem;
+  justify-content: center;
+  font-size: .82rem; color: var(--muted);
+}
+.student-strip span { white-space: nowrap; }
+.student-strip strong { color: var(--ink); }
+
+main { max-width: 960px; margin: 2rem auto; padding: 0 1rem 3rem; }
+
+/* index table */
+.index-table {
+  width: 100%; border-collapse: collapse;
+  font-size: .84rem; margin-bottom: 2.5rem;
+  background: var(--surface);
+  border-radius: var(--radius); overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.index-table thead tr { background: var(--accent); color: #fff; }
+.index-table th { padding: .65rem .9rem; text-align: left; font-weight: 600; white-space: nowrap; }
+.index-table td { padding: .6rem .9rem; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.index-table tbody tr:last-child td { border-bottom: none; }
+.index-table tbody tr:hover { background: rgba(37,99,235,.04); }
+.index-table td a { color: var(--accent2); text-decoration: none; font-weight: 500; }
+.index-table td a:hover { text-decoration: underline; }
+.co-badge {
+  display: inline-block; padding: .15rem .5rem;
+  border-radius: 20px; font-size: .72rem; font-weight: 600;
+  background: #dbeafe; color: #1d4ed8;
+}
+@media (prefers-color-scheme: dark) {
+  .co-badge { background: #1e3a5f; color: #93c5fd; }
+}
 
 .unit-label {
   font-size: .72rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
@@ -61,8 +96,9 @@ main { max-width: 900px; margin: 2rem auto; padding: 0 1rem 3rem; }
 }
 
 .card-body { flex: 1; }
-.card-body .label { font-size: .7rem; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; }
-.card-body .title { font-size: .92rem; font-weight: 600; margin-top: .15rem; line-height: 1.35; }
+.card-body .meta { font-size: .7rem; color: var(--muted); display: flex; gap: .6rem; flex-wrap: wrap; margin-bottom: .2rem; }
+.card-body .title { font-size: .92rem; font-weight: 600; line-height: 1.35; }
+.card-body .date { font-size: .7rem; color: var(--muted); margin-top: .3rem; }
 
 footer {
   text-align: center; font-size: .78rem; color: var(--muted);
@@ -75,25 +111,133 @@ footer {
 <header>
   <h1>CP25C01 – Advanced Data Structures &amp; Algorithms Lab</h1>
   <p>M.E – Computer Science &amp; Engineering &nbsp;|&nbsp; 2025 Regulation</p>
-  <span class="badge">Department of Computer Science &amp; Engineering</span>
+  <span class="badge">Department of Computer Science &amp; Engineering &nbsp;·&nbsp; CIT</span>
 </header>
+
+<div class="student-strip">
+  <span><strong>Register No:</strong> 210426405017</span>
+  <span><strong>Subject Code:</strong> CP25C01</span>
+  <span><strong>Branch:</strong> M.E – CSE</span>
+</div>
 
 <main>
 
+  <!-- ── INDEX TABLE ── -->
+  <table class="index-table">
+    <thead>
+      <tr>
+        <th>S.No</th>
+        <th>Date</th>
+        <th>Name of the Experiment</th>
+        <th>CO's</th>
+        <th>PO's &amp; PSO's</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>23/09/26</td>
+        <td><a href="ExpNo1/index.html">Implement Skiplist &amp; Measure Performance Compared with Balanced BST</a></td>
+        <td><span class="co-badge">CO1</span></td>
+        <td>PO1, PO2, PO3, PO4, PO5, PO6</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>30/09/26</td>
+        <td><a href="ExpNo2/index.html">Experiment with Cache-Aware Data Structure and Analyze Memory Utilization</a></td>
+        <td><span class="co-badge">CO1</span></td>
+        <td>PO1, PO2, PO3, PO4, PO5, PO6</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>07/10/26</td>
+        <td><a href="ExpNo3/index.html">Implement B+ Tree for Database Indexing Use-Case</a></td>
+        <td><span class="co-badge">CO2</span></td>
+        <td>PO1, PO2, PO3, PO4, PO5, PO6</td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td>14/10/26</td>
+        <td><a href="ExpNo4/index.html">Design a Suffix Tree Based Algorithm for DNA Sequence Matching</a></td>
+        <td><span class="co-badge">CO2</span></td>
+        <td>PO1, PO2, PO3, PO4, PO5, PO6</td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td>04/11/26</td>
+        <td><a href="ExpNo5/index.html">Implement Johnson's Algorithm for Sparse Graph Path</a></td>
+        <td><span class="co-badge">CO3</span></td>
+        <td>PO1, PO2, PO3, PO4, PO5, PO6</td>
+      </tr>
+      <tr>
+        <td>6</td>
+        <td>19/11/26</td>
+        <td><a href="ExpNo6/index.html">Demonstration of Maximum Flow in Traffic or Networking Routing Simulation</a></td>
+        <td><span class="co-badge">CO3</span></td>
+        <td>PO1, PO2, PO3, PO4, PO5, PO6</td>
+      </tr>
+      <tr>
+        <td>7</td>
+        <td>&nbsp;</td>
+        <td><a href="ExpNo7/index.html">Implement Strassen's Algorithm and Compare with Naive Matrix Multiplication</a></td>
+        <td><span class="co-badge">CO4</span></td>
+        <td>PO1, PO2, PO3, PO4, PO5, PO6</td>
+      </tr>
+      <tr>
+        <td>8</td>
+        <td>&nbsp;</td>
+        <td><a href="ExpNo8/index.html">Develop a Randomized Algorithm for Primality Testing (Miller-Rabin)</a></td>
+        <td><span class="co-badge">CO4</span></td>
+        <td>PO1, PO2, PO3, PO4, PO5, PO6</td>
+      </tr>
+      <tr>
+        <td>9</td>
+        <td>&nbsp;</td>
+        <td><a href="ExpNo9/index.html">Implement Approximation Algorithm for Vertex Cover</a></td>
+        <td><span class="co-badge">CO5</span></td>
+        <td>PO1, PO2, PO3, PO4, PO5, PO6</td>
+      </tr>
+      <tr>
+        <td>10</td>
+        <td>&nbsp;</td>
+        <td><a href="ExpNo10/index.html">Complexity Analysis of a Chosen NP-Hard Problem and Implement a Heuristic</a></td>
+        <td><span class="co-badge">CO5</span></td>
+        <td>PO1, PO2, PO3, PO4, PO5, PO6</td>
+      </tr>
+      <tr>
+        <td>11</td>
+        <td>&nbsp;</td>
+        <td><a href="ExpNo11/index.html">Implement Randomized and Streaming Algorithms on Real-World Datasets</a></td>
+        <td><span class="co-badge">CO5</span></td>
+        <td>PO1, PO2, PO3, PO4, PO5, PO6</td>
+      </tr>
+      <tr>
+        <td>12</td>
+        <td>&nbsp;</td>
+        <td><a href="ExpNo12/index.html">Design of Parallel and Distributed Algorithms</a></td>
+        <td><span class="co-badge">CO5</span></td>
+        <td>PO1, PO2, PO3, PO4, PO5, PO6</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ── CARDS ── -->
   <div class="unit-label">Unit 1 – Linear Data Structures &amp; Hashing</div>
   <div class="grid">
     <a class="card" href="ExpNo1/index.html">
       <div class="exp-num">1</div>
       <div class="card-body">
-        <div class="label">Experiment 1</div>
+        <div class="meta"><span>CO1</span><span>PO1–PO6</span></div>
         <div class="title">Skip Lists vs Balanced BST – Performance Comparison</div>
+        <div class="date">23/09/26</div>
       </div>
     </a>
     <a class="card" href="ExpNo2/index.html">
       <div class="exp-num">2</div>
       <div class="card-body">
-        <div class="label">Experiment 2</div>
+        <div class="meta"><span>CO1</span><span>PO1–PO6</span></div>
         <div class="title">Cache-Aware Data Structures &amp; Memory Utilization</div>
+        <div class="date">30/09/26</div>
       </div>
     </a>
   </div>
@@ -103,15 +247,17 @@ footer {
     <a class="card" href="ExpNo3/index.html">
       <div class="exp-num">3</div>
       <div class="card-body">
-        <div class="label">Experiment 3</div>
+        <div class="meta"><span>CO2</span><span>PO1–PO6</span></div>
         <div class="title">B+ Tree for Database Indexing</div>
+        <div class="date">07/10/26</div>
       </div>
     </a>
     <a class="card" href="ExpNo4/index.html">
       <div class="exp-num">4</div>
       <div class="card-body">
-        <div class="label">Experiment 4</div>
+        <div class="meta"><span>CO2</span><span>PO1–PO6</span></div>
         <div class="title">Suffix Tree Algorithm for DNA Sequence Matching</div>
+        <div class="date">14/10/26</div>
       </div>
     </a>
   </div>
@@ -121,15 +267,17 @@ footer {
     <a class="card" href="ExpNo5/index.html">
       <div class="exp-num">5</div>
       <div class="card-body">
-        <div class="label">Experiment 5</div>
+        <div class="meta"><span>CO3</span><span>PO1–PO6</span></div>
         <div class="title">Johnson's Algorithm – Sparse Graph Shortest Paths</div>
+        <div class="date">04/11/26</div>
       </div>
     </a>
     <a class="card" href="ExpNo6/index.html">
       <div class="exp-num">6</div>
       <div class="card-body">
-        <div class="label">Experiment 6</div>
+        <div class="meta"><span>CO3</span><span>PO1–PO6</span></div>
         <div class="title">Maximum Flow in Traffic / Network Routing Simulation</div>
+        <div class="date">19/11/26</div>
       </div>
     </a>
   </div>
@@ -139,14 +287,14 @@ footer {
     <a class="card" href="ExpNo7/index.html">
       <div class="exp-num">7</div>
       <div class="card-body">
-        <div class="label">Experiment 7</div>
+        <div class="meta"><span>CO4</span><span>PO1–PO6</span></div>
         <div class="title">Strassen's Algorithm vs Naive Matrix Multiplication</div>
       </div>
     </a>
     <a class="card" href="ExpNo8/index.html">
       <div class="exp-num">8</div>
       <div class="card-body">
-        <div class="label">Experiment 8</div>
+        <div class="meta"><span>CO4</span><span>PO1–PO6</span></div>
         <div class="title">Miller-Rabin Randomized Primality Testing</div>
       </div>
     </a>
@@ -157,28 +305,28 @@ footer {
     <a class="card" href="ExpNo9/index.html">
       <div class="exp-num">9</div>
       <div class="card-body">
-        <div class="label">Experiment 9</div>
+        <div class="meta"><span>CO5</span><span>PO1–PO6</span></div>
         <div class="title">Approximation Algorithm for Vertex Cover</div>
       </div>
     </a>
     <a class="card" href="ExpNo10/index.html">
       <div class="exp-num">10</div>
       <div class="card-body">
-        <div class="label">Experiment 10</div>
+        <div class="meta"><span>CO5</span><span>PO1–PO6</span></div>
         <div class="title">NP-Hard Problem Complexity Analysis &amp; Heuristic</div>
       </div>
     </a>
     <a class="card" href="ExpNo11/index.html">
       <div class="exp-num">11</div>
       <div class="card-body">
-        <div class="label">Experiment 11</div>
+        <div class="meta"><span>CO5</span><span>PO1–PO6</span></div>
         <div class="title">Randomized &amp; Streaming Algorithms on Real-World Datasets</div>
       </div>
     </a>
     <a class="card" href="ExpNo12/index.html">
       <div class="exp-num">12</div>
       <div class="card-body">
-        <div class="label">Experiment 12</div>
+        <div class="meta"><span>CO5</span><span>PO1–PO6</span></div>
         <div class="title">Parallel &amp; Distributed Algorithm Design</div>
       </div>
     </a>
@@ -187,7 +335,7 @@ footer {
 </main>
 
 <footer>
-  CP25C01 &nbsp;·&nbsp; Advanced Data Structures &amp; Algorithms Lab &nbsp;·&nbsp; CIT
+  CP25C01 &nbsp;·&nbsp; Advanced Data Structures &amp; Algorithms Lab &nbsp;·&nbsp; CIT &nbsp;·&nbsp; Reg No: 210426405017
 </footer>
 
 </body>

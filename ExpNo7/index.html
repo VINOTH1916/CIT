@@ -48,6 +48,14 @@ td:first-child{text-align:left}tbody tr:hover td{background:#ede9fe}
 .chart-wrap{position:relative;height:280px}
 figcaption{font-size:.8rem;color:var(--muted);margin-top:8px}
 #result p,#analysis p{margin-bottom:10px;max-width:80ch;line-height:1.7;font-size:.9rem}
+.intro{max-width:85ch;color:var(--muted);font-size:.94rem;line-height:1.75}
+.formula{margin-top:14px;padding:13px 15px;border-radius:9px;background:#f5f3ff;border-left:4px solid #7c3aed;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.9rem;color:#4c1d95;overflow-x:auto}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:10px;margin-top:16px}
+.step{border:1px solid var(--line);border-radius:9px;padding:12px;background:var(--bg)}
+.step b{display:block;color:#5b21b6;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}.step span{font-size:.83rem;color:var(--muted);line-height:1.45}
+.demo-layout{display:grid;grid-template-columns:minmax(260px,1fr) minmax(240px,1.25fr);gap:22px;align-items:center}.matrix-demo{display:grid;grid-template-columns:repeat(2,1fr);gap:4px;padding:8px;border:2px solid #c4b5fd;border-radius:10px;background:#faf5ff;max-width:360px;margin:auto}.quad{min-height:68px;padding:10px;border-radius:6px;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:700;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.84rem;transition:transform .25s,box-shadow .25s,background .25s}.qa{background:#ddd6fe;color:#4c1d95}.qb{background:#dbeafe;color:#1e40af}.qc{background:#dcfce7;color:#166534}.qd{background:#fef3c7;color:#92400e}.quad.active{transform:scale(1.04);box-shadow:0 0 0 3px #7c3aed;background:#f3e8ff}
+.demo-copy h3{font-size:1rem;margin-bottom:6px}.demo-copy p{font-size:.88rem;color:var(--muted);min-height:54px}.progress{height:7px;border-radius:99px;background:var(--line);overflow:hidden;margin:14px 0 10px}.progress i{display:block;width:0;height:100%;background:linear-gradient(90deg,#7c3aed,#a78bfa);transition:width .3s}.demo-status{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.86rem;color:#5b21b6;font-weight:700}.code{max-height:490px;overflow:auto;background:#111827;color:#e5e7eb;border-radius:9px;padding:16px;font:12px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre;tab-size:2}.code-note{font-size:.83rem;color:var(--muted);margin-bottom:12px}.copy-ok{font-size:.8rem;color:var(--ok)}
+@media(max-width:700px){.demo-layout{grid-template-columns:1fr}.matrix-demo{max-width:100%}}
 footer{text-align:center;padding:20px;font-size:.78rem;color:var(--muted)}
 </style>
 </head>
@@ -61,10 +69,22 @@ footer{text-align:center;padding:20px;font-size:.78rem;color:var(--muted)}
     </div>
   </div>
   <div class="student-bar">
-    <span>Vinoth Kumar R</span><span>M.E CSE</span><span>CIT – Coimbatore Institute of Technology</span>
+    <span>Vinoth Kumar R</span><span>Register No: 210426405017</span><span>M.E CSE</span><span>CIT – Coimbatore Institute of Technology</span>
   </div>
 </header>
 <main>
+  <div class="card">
+    <div class="card-header"><div class="card-icon icon-b">💡</div><div><h2>What this experiment demonstrates</h2><p>Divide-and-conquer matrix multiplication, measured against the classical method</p></div></div>
+    <p class="intro">Naive multiplication calculates every output cell with a full row-by-column dot product, requiring <b>n³</b> scalar multiplications. Strassen divides each matrix into four quadrants and uses <b>7</b> recursive products instead of 8. That lowers the asymptotic running time, although the extra additions and temporary matrices can make it slower for small matrices.</p>
+    <div class="formula">Naive: Θ(n³) &nbsp; | &nbsp; Strassen: T(n) = 7T(n/2) + 18(n/2)² = Θ(n<sup>log₂7</sup>) ≈ Θ(n<sup>2.807</sup>)</div>
+    <div class="steps"><div class="step"><b>1. Pad</b><span>Pad an arbitrary n × n input with zeros to the next power of two.</span></div><div class="step"><b>2. Split</b><span>Partition A and B into A₁₁…A₂₂ and B₁₁…B₂₂ quadrants.</span></div><div class="step"><b>3. Recurse</b><span>Calculate M₁…M₇; use naive multiplication at the cut-off.</span></div><div class="step"><b>4. Combine</b><span>Rebuild C₁₁…C₂₂, then trim away the padding.</span></div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-icon icon-v">▶</div><div><h2>Animated 2 × 2 Strassen walkthrough</h2><p>Play the seven products used at one divide-and-conquer level</p></div></div>
+    <div class="demo-layout"><div class="matrix-demo" aria-label="Matrix quadrants"><div class="quad qa" data-q="A11">A₁₁ / B₁₁</div><div class="quad qb" data-q="A12">A₁₂ / B₁₂</div><div class="quad qc" data-q="A21">A₂₁ / B₂₁</div><div class="quad qd" data-q="A22">A₂₂ / B₂₂</div></div><div class="demo-copy"><h3 id="demoTitle">Ready to split the matrices</h3><p id="demoText">Each quadrant is half the width and height of the original matrix. Start the animation to see the seven recursive products.</p><div class="progress"><i id="demoProgress"></i></div><div class="demo-status" id="demoStatus">Step 0 of 7</div><div class="btn-row"><button class="btn btn-primary" id="playDemo">▶ Play</button><button class="btn btn-ghost" id="nextDemo">Next step</button><button class="btn btn-ghost" id="resetDemo">↺ Reset</button></div></div></div>
+  </div>
+
   <div class="card">
     <div class="card-header"><div class="card-icon icon-v">⚙️</div><div><h2>Inputs</h2><p>Configure matrix sizes, cut-off threshold and seed</p></div></div>
     <div class="grid">
@@ -97,6 +117,31 @@ footer{text-align:center;padding:20px;font-size:.78rem;color:var(--muted)}
     <div class="card"><div class="card-header"><div class="card-icon icon-g">✅</div><div><h2>Result</h2></div></div><div id="result"></div></div>
     <div class="card"><div class="card-header"><div class="card-icon icon-a">🔍</div><div><h2>Analysis</h2></div></div><div id="analysis"></div></div>
   </div>
+  <div class="card">
+    <div class="card-header"><div class="card-icon icon-b">&lt;/&gt;</div><div><h2>Core program code</h2><p>The browser benchmark uses the same hybrid Strassen approach shown below</p></div></div>
+    <p class="code-note">Use a cut-off (such as 64) so that small submatrices use the faster classical routine. The complete interactive implementation is the script on this page.</p>
+    <div class="btn-row" style="margin-top:0;margin-bottom:12px"><button class="btn btn-ghost" id="copyCode">Copy code</button><span class="copy-ok" id="copyStatus" aria-live="polite"></span></div>
+    <pre class="code" id="codeBlock">function strassen(A, B, cutoff) {
+  const n = A.length;
+  if (n &lt;= cutoff) return naive(A, B);
+  const [A11, A12, A21, A22] = split(A);
+  const [B11, B12, B21, B22] = split(B);
+  const M1 = strassen(add(A11,A22), add(B11,B22), cutoff);
+  const M2 = strassen(add(A21,A22), B11, cutoff);
+  const M3 = strassen(A11, sub(B12,B22), cutoff);
+  const M4 = strassen(A22, sub(B21,B11), cutoff);
+  const M5 = strassen(add(A11,A12), B22, cutoff);
+  const M6 = strassen(sub(A21,A11), add(B11,B12), cutoff);
+  const M7 = strassen(sub(A12,A22), add(B21,B22), cutoff);
+  const C11 = add(sub(add(M1,M4),M5),M7);
+  const C12 = add(M3,M5), C21 = add(M2,M4);
+  const C22 = add(sub(add(M1,M3),M2),M6);
+  return join(C11, C12, C21, C22);
+}
+
+// Pad each input to the next power of two, call strassen,
+// then return only the original n × n top-left result.</pre>
+  </div>
 </main>
 <footer>CP25C01 · Strassen's Algorithm · CIT</footer>
 <script>
@@ -104,6 +149,27 @@ function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a
 const $=id=>document.getElementById(id);
 let charts=[];
 function destroyCharts(){charts.forEach(c=>c.destroy());charts=[];}
+
+const demoSteps=[
+  {title:'M₁ = (A₁₁ + A₂₂)(B₁₁ + B₂₂)',text:'Add the two diagonal quadrants of A and B, then recursively multiply the sums.',qs:['A11','A22']},
+  {title:'M₂ = (A₂₁ + A₂₂)B₁₁',text:'Use the lower half of A and the upper-left quadrant of B.',qs:['A21','A22','A11']},
+  {title:'M₃ = A₁₁(B₁₂ − B₂₂)',text:'Use A’s upper-left quadrant and the difference from B’s right half.',qs:['A11','A12','A22']},
+  {title:'M₄ = A₂₂(B₂₁ − B₁₁)',text:'Use A’s lower-right quadrant and the difference from B’s left half.',qs:['A22','A21','A11']},
+  {title:'M₅ = (A₁₁ + A₁₂)B₂₂',text:'Use the top half of A with B’s lower-right quadrant.',qs:['A11','A12','A22']},
+  {title:'M₆ = (A₂₁ − A₁₁)(B₁₁ + B₁₂)',text:'Combine a vertical difference from A with a horizontal sum from B.',qs:['A21','A11','A12']},
+  {title:'M₇ = (A₁₂ − A₂₂)(B₂₁ + B₂₂)',text:'The final product uses the remaining right-side and lower-side combinations.',qs:['A12','A22','A21']}
+];
+let demoIndex=0,demoTimer=null;
+function renderDemo(){
+  document.querySelectorAll('.quad').forEach(q=>q.classList.remove('active'));
+  const step=demoSteps[demoIndex-1];
+  if(!step){$('demoTitle').textContent='Ready to split the matrices';$('demoText').textContent='Each quadrant is half the width and height of the original matrix. Start the animation to see the seven recursive products.';$('demoStatus').textContent='Step 0 of 7';$('demoProgress').style.width='0%';return;}
+  step.qs.forEach(q=>document.querySelector(`[data-q="${q}"]`).classList.add('active'));
+  $('demoTitle').textContent=step.title;$('demoText').textContent=step.text;$('demoStatus').textContent=`Step ${demoIndex} of 7`;$('demoProgress').style.width=`${demoIndex/demoSteps.length*100}%`;
+}
+function nextDemo(){demoIndex=demoIndex%demoSteps.length+1;renderDemo();}
+function stopDemo(){if(demoTimer){clearInterval(demoTimer);demoTimer=null;$('playDemo').textContent='▶ Play';}}
+function toggleDemo(){if(demoTimer){stopDemo();return;}nextDemo();$('playDemo').textContent='❚❚ Pause';demoTimer=setInterval(nextDemo,1800);}
 
 let MULS=0;
 
@@ -200,6 +266,15 @@ function renderText(rows,cutoff){
 }
 $('run').addEventListener('click',run);
 $('resetBtn').addEventListener('click',()=>{$('sizes').value='16,32,64,128';$('cutoff').value=16;$('seed').value=11;$('status').textContent='';$('out').classList.add('hide');});
+$('nextDemo').addEventListener('click',()=>{stopDemo();nextDemo();});
+$('playDemo').addEventListener('click',toggleDemo);
+$('resetDemo').addEventListener('click',()=>{stopDemo();demoIndex=0;renderDemo();});
+$('copyCode').addEventListener('click',async()=>{
+  try{await navigator.clipboard.writeText($('codeBlock').textContent);$('copyStatus').textContent='Copied.';}
+  catch(e){$('copyStatus').textContent='Select the code to copy.';}
+  setTimeout(()=>$('copyStatus').textContent='',1800);
+});
+renderDemo();
 </script>
 </body>
 </html>
