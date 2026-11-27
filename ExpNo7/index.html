@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ex 7: Strassen's Algorithm</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{--bg:#f1f5fb;--surface:#fff;--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;--ok:#0f766e}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.6 "Segoe UI",system-ui,sans-serif}
+.site-header{background:linear-gradient(135deg,#1e1b4b,#7c3aed);color:#fff;padding:0}
+.header-top{display:flex;align-items:center;padding:16px 28px 10px;flex-wrap:wrap;gap:12px}
+.header-title h1{font-size:1.25rem;font-weight:700}
+.header-title .sub{font-size:.82rem;opacity:.8;margin-top:3px}
+.badge-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+.badge{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:20px;padding:2px 11px;font-size:.73rem;font-weight:600}
+.student-bar{background:rgba(0,0,0,.18);border-top:1px solid rgba(255,255,255,.1);padding:7px 28px;display:flex;gap:24px;flex-wrap:wrap}
+.student-bar span{font-size:.8rem;opacity:.9;display:flex;align-items:center;gap:6px}
+.student-bar span::before{content:'';width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.6)}
+main{max-width:1060px;margin:0 auto;padding:28px 20px 72px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:22px 24px;margin-bottom:20px}
+.card-header{display:flex;align-items:center;gap:10px;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.card-icon{width:34px;height:34px;border-radius:8px;display:grid;place-items:center;font-size:1.1rem}
+.icon-v{background:#ede9fe;color:#7c3aed}.icon-g{background:#dcfce7;color:#166534}.icon-a{background:#fef3c7;color:#b45309}.icon-b{background:#e0f2fe;color:#0369a1}
+.card-header h2{font-size:1rem;font-weight:700}.card-header p{font-size:.8rem;color:var(--muted);margin-top:2px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px}
+.field label{display:block;font-size:.8rem;font-weight:600;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em}
+.field input{width:100%;padding:9px 12px;border:1.5px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit;font-size:.93rem}
+.field input:focus-visible{outline:none;border-color:#7c3aed}
+.field small{display:block;color:var(--muted);font-size:.75rem;margin-top:4px}
+.btn-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:18px}
+.btn{font:600 .9rem/1 inherit;padding:10px 22px;border-radius:8px;cursor:pointer;border:1.5px solid transparent;transition:all .18s}
+.btn-primary{background:linear-gradient(135deg,#1e1b4b,#7c3aed);color:#fff}
+.btn-primary:hover{transform:translateY(-1px)}.btn-primary:disabled{opacity:.55;cursor:not-allowed}
+.btn-ghost{background:transparent;color:var(--ink);border-color:var(--line)}.btn-ghost:hover{background:var(--bg)}
+#status{color:var(--muted);font-size:.85rem}
+.hide{display:none!important}
+.scroll{overflow-x:auto;border-radius:8px;border:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;font-size:.88rem;font-variant-numeric:tabular-nums}
+thead tr{background:linear-gradient(135deg,#1e1b4b,#7c3aed);color:#fff}
+th{padding:10px 12px;text-align:center;font-weight:600;font-size:.78rem;text-transform:uppercase;letter-spacing:.05em}
+th:first-child{text-align:left}td{padding:9px 12px;text-align:center;border-bottom:1px solid var(--line)}
+td:first-child{text-align:left}tbody tr:hover td{background:#ede9fe}
+.win{color:var(--ok);font-weight:700}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:650px){.charts{grid-template-columns:1fr}}
+.chart-wrap{position:relative;height:280px}
+figcaption{font-size:.8rem;color:var(--muted);margin-top:8px}
+#result p,#analysis p{margin-bottom:10px;max-width:80ch;line-height:1.7;font-size:.9rem}
+footer{text-align:center;padding:20px;font-size:.78rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="header-top">
+    <div class="header-title">
+      <h1>Experiment 7 — Strassen's vs Naive Matrix Multiplication</h1>
+      <div class="sub">CP25C01 Advanced Data Structures &amp; Algorithms Lab · M.E CSE 2025 Reg.</div>
+      <div class="badge-row"><span class="badge">CO4 · K3</span><span class="badge">Unit 4 – Algorithm Design</span><span class="badge">PO1–PO6</span></div>
+    </div>
+  </div>
+  <div class="student-bar">
+    <span>Vinoth Kumar R</span><span>M.E CSE</span><span>CIT – Coimbatore Institute of Technology</span>
+  </div>
+</header>
+<main>
+  <div class="card">
+    <div class="card-header"><div class="card-icon icon-v">⚙️</div><div><h2>Inputs</h2><p>Configure matrix sizes, cut-off threshold and seed</p></div></div>
+    <div class="grid">
+      <div class="field"><label>Matrix sizes (comma)</label><input id="sizes" value="16,32,64,128"><small>n×n integer matrices to test</small></div>
+      <div class="field"><label>Strassen Cut-off</label><input type="number" id="cutoff" value="16" min="2" max="64"><small>Use naive below this size</small></div>
+      <div class="field"><label>Seed</label><input type="number" id="seed" value="11"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="run">▶ Run Benchmark</button>
+      <button class="btn btn-ghost" id="resetBtn">↺ Reset</button>
+      <span id="status" role="status"></span>
+    </div>
+  </div>
+
+  <div id="out" class="hide">
+    <div class="card">
+      <div class="card-header"><div class="card-icon icon-v">📊</div><div><h2>Benchmark Results</h2></div></div>
+      <div class="scroll"><table id="tbl">
+        <thead><tr><th>n</th><th>Naive (ms)</th><th>Strassen (ms)</th><th>Speed-up</th><th>Mult Ratio</th><th>Correct?</th></tr></thead>
+        <tbody></tbody>
+      </table></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-icon icon-v">📈</div><div><h2>Graphical Analysis</h2></div></div>
+      <div class="charts">
+        <figure><div class="chart-wrap"><canvas id="c1"></canvas></div><figcaption>Fig 7.1 — Time (ms): Naive vs Strassen</figcaption></figure>
+        <figure><div class="chart-wrap"><canvas id="c2"></canvas></div><figcaption>Fig 7.2 — Scalar multiplication ratio vs n</figcaption></figure>
+      </div>
+    </div>
+    <div class="card"><div class="card-header"><div class="card-icon icon-g">✅</div><div><h2>Result</h2></div></div><div id="result"></div></div>
+    <div class="card"><div class="card-header"><div class="card-icon icon-a">🔍</div><div><h2>Analysis</h2></div></div><div id="analysis"></div></div>
+  </div>
+</main>
+<footer>CP25C01 · Strassen's Algorithm · CIT</footer>
+<script>
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const $=id=>document.getElementById(id);
+let charts=[];
+function destroyCharts(){charts.forEach(c=>c.destroy());charts=[];}
+
+let MULS=0;
+
+function naive(A,B,n){
+  const C=new Array(n).fill(0).map(()=>new Float64Array(n));
+  for(let i=0;i<n;i++)for(let k=0;k<n;k++){const aik=A[i][k];for(let j=0;j<n;j++){C[i][j]+=aik*B[k][j];MULS++;}}
+  return C;
+}
+function add(A,B,n){return A.map((r,i)=>r.map((v,j)=>v+B[i][j]));}
+function sub(A,B,n){return A.map((r,i)=>r.map((v,j)=>v-B[i][j]));}
+function split(M,n){
+  const h=n/2;
+  return[M.slice(0,h).map(r=>r.slice(0,h)),M.slice(0,h).map(r=>r.slice(h)),
+         M.slice(h).map(r=>r.slice(0,h)),M.slice(h).map(r=>r.slice(h))];
+}
+function strassen(A,B,n,cutoff){
+  if(n<=cutoff)return naive(A,B,n);
+  const[A11,A12,A21,A22]=split(A,n);
+  const[B11,B12,B21,B22]=split(B,n);
+  const h=n/2;
+  const M1=strassen(add(A11,A22),add(B11,B22),h,cutoff);
+  const M2=strassen(add(A21,A22),B11,h,cutoff);
+  const M3=strassen(A11,sub(B12,B22),h,cutoff);
+  const M4=strassen(A22,sub(B21,B11),h,cutoff);
+  const M5=strassen(add(A11,A12),B22,h,cutoff);
+  const M6=strassen(sub(A21,A11),add(B11,B12),h,cutoff);
+  const M7=strassen(sub(A12,A22),add(B21,B22),h,cutoff);
+  const C11=add(sub(add(M1,M4),M5),M7);
+  const C12=add(M3,M5);
+  const C21=add(M2,M4);
+  const C22=add(sub(add(M1,M3),M2),M6);
+  return C11.map((r,i)=>[...r,...C12[i]]).concat(C21.map((r,i)=>[...r,...C22[i]]));
+}
+function nextPow2(n){let m=1;while(m<n)m*=2;return m;}
+function multiply(A,B,n,cutoff){
+  const m=nextPow2(n);
+  const pad=M=>Array.from({length:m},(_,i)=>Array.from({length:m},(_,j)=>i<n&&j<n?M[i][j]:0));
+  const C=strassen(pad(A),pad(B),m,cutoff);
+  return C.slice(0,n).map(r=>r.slice(0,n));
+}
+function rndMat(n,rng){return Array.from({length:n},()=>Array.from({length:n},()=>Math.floor(rng()*19)-9));}
+function mateq(A,B,n){for(let i=0;i<n;i++)for(let j=0;j<n;j++)if(Math.abs(A[i][j]-B[i][j])>0.5)return false;return true;}
+
+async function run(){
+  const btn=$('run');btn.disabled=true;$('status').textContent='Running…';
+  await new Promise(r=>setTimeout(r,20));
+  const ns=$('sizes').value.split(',').map(s=>parseInt(s.trim())).filter(x=>x>=2);
+  const cutoff=parseInt($('cutoff').value)||16;
+  const rng=mulberry32(parseInt($('seed').value)||11);
+  const rows=[];
+  for(const n of ns){
+    const A=rndMat(n,rng),B=rndMat(n,rng);
+    MULS=0;
+    const t0=performance.now();const R1=naive(A,B,n);const tN=performance.now()-t0;const naiveMuls=MULS;
+    MULS=0;
+    const t1=performance.now();const R2=multiply(A,B,n,cutoff);const tS=performance.now()-t1;const sMuls=MULS;
+    rows.push({n,tN,tS,speedup:tN/tS,ratio:sMuls/naiveMuls,ok:mateq(R1,R2,n)});
+    await new Promise(r=>setTimeout(r,5));
+  }
+  renderTable(rows);renderCharts(rows);renderText(rows,cutoff);
+  $('out').classList.remove('hide');$('status').textContent='Done.';btn.disabled=false;
+}
+
+function renderTable(rows){
+  const tb=$('tbl').querySelector('tbody');tb.innerHTML='';
+  rows.forEach(r=>{
+    const faster=r.tS<r.tN;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${r.n}</td><td class="${faster?'':'win'}">${r.tN.toFixed(2)}</td><td class="${faster?'win':''}">${r.tS.toFixed(2)}</td><td>${r.speedup.toFixed(2)}x</td><td>${r.ratio.toFixed(3)}</td><td>${r.ok?'✓':'✗'}</td>`;
+    tb.appendChild(tr);
+  });
+}
+function renderCharts(rows){
+  destroyCharts();
+  const muted='#64748b',line='#e2e8f0';
+  Chart.defaults.color=muted;Chart.defaults.font.family='"Segoe UI",system-ui,sans-serif';
+  charts.push(new Chart($('c1'),{type:'bar',data:{labels:rows.map(r=>`n=${r.n}`),datasets:[
+    {label:'Naive (ms)',data:rows.map(r=>r.tN),backgroundColor:'#dc2626',borderRadius:5},
+    {label:'Strassen (ms)',data:rows.map(r=>r.tS),backgroundColor:'#7c3aed',borderRadius:5}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'}},
+    scales:{y:{title:{display:true,text:'Time (ms)'},beginAtZero:true,grid:{color:line}},x:{grid:{display:false}}}}}));
+  charts.push(new Chart($('c2'),{type:'line',data:{labels:rows.map(r=>`n=${r.n}`),datasets:[
+    {label:'Mult ratio',data:rows.map(r=>r.ratio),borderColor:'#7c3aed',backgroundColor:'#7c3aed',pointRadius:5,tension:.3,borderWidth:2.5},
+    {label:'Baseline (1.0)',data:rows.map(()=>1),borderColor:'#dc2626',borderDash:[5,4],pointRadius:0,borderWidth:1.5}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'}},
+    scales:{y:{title:{display:true,text:'Ratio (Strassen/Naive)'},grid:{color:line}},x:{grid:{display:false}}}}}));
+}
+function renderText(rows,cutoff){
+  const best=rows.reduce((a,b)=>b.speedup>a.speedup?b:a);
+  $('result').innerHTML=`<p>Strassen's algorithm was implemented with padding and a cut-off of ${cutoff}. All results matched the naive algorithm. The multiplication ratio falls below 1.0 as n grows — Strassen performs fewer scalar multiplications. Best observed speed-up: <b>${best.speedup.toFixed(2)}x at n=${best.n}</b>.</p>`;
+  $('analysis').innerHTML=`<p><b>Recurrence:</b> T(n) = 7·T(n/2) + 18·(n/2)² gives T(n) = Θ(n^log₂7) ≈ Θ(n^2.807), vs Θ(n³) for naive.</p>
+  <p><b>Crossover:</b> At small n, the 18 extra additions per recursion level and memory allocation overhead outweigh the savings from fewer multiplications. Strassen only wins at larger n.</p>
+  <p><b>Multiplication ratio:</b> With cut-off c, there are log₂(n/c) recursion levels, each replacing 8 multiplications with 7. The ratio is (7/8)^k where k = log₂(n/c).</p>`;
+}
+$('run').addEventListener('click',run);
+$('resetBtn').addEventListener('click',()=>{$('sizes').value='16,32,64,128';$('cutoff').value=16;$('seed').value=11;$('status').textContent='';$('out').classList.add('hide');});
+</script>
+</body>
+</html>

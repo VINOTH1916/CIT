@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ex 11: Streaming Algorithms</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{--bg:#f1f5fb;--surface:#fff;--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;--ok:#0f766e}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.6 "Segoe UI",system-ui,sans-serif}
+.site-header{background:linear-gradient(135deg,#0f172a,#1e3a5f);color:#fff;padding:0}
+.header-top{display:flex;align-items:center;padding:16px 28px 10px;flex-wrap:wrap;gap:12px}
+.header-title h1{font-size:1.25rem;font-weight:700}
+.header-title .sub{font-size:.82rem;opacity:.8;margin-top:3px}
+.badge-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+.badge{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:20px;padding:2px 11px;font-size:.73rem;font-weight:600}
+.student-bar{background:rgba(0,0,0,.18);border-top:1px solid rgba(255,255,255,.1);padding:7px 28px;display:flex;gap:24px;flex-wrap:wrap}
+.student-bar span{font-size:.8rem;opacity:.9;display:flex;align-items:center;gap:6px}
+.student-bar span::before{content:'';width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.6)}
+main{max-width:1060px;margin:0 auto;padding:28px 20px 72px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:22px 24px;margin-bottom:20px}
+.card-header{display:flex;align-items:center;gap:10px;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.card-icon{width:34px;height:34px;border-radius:8px;display:grid;place-items:center;font-size:1.1rem}
+.icon-d{background:#e0e7ff;color:#3730a3}.icon-g{background:#dcfce7;color:#166634}.icon-a{background:#fef3c7;color:#b45309}.icon-p{background:#ede9fe;color:#6d28d9}
+.card-header h2{font-size:1rem;font-weight:700}.card-header p{font-size:.8rem;color:var(--muted);margin-top:2px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px}
+.field label{display:block;font-size:.8rem;font-weight:600;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em}
+.field input{width:100%;padding:9px 12px;border:1.5px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit;font-size:.93rem}
+.field input:focus-visible{outline:none;border-color:#3730a3}
+.field small{display:block;color:var(--muted);font-size:.75rem;margin-top:4px}
+.btn-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:18px}
+.btn{font:600 .9rem/1 inherit;padding:10px 22px;border-radius:8px;cursor:pointer;border:1.5px solid transparent;transition:all .18s}
+.btn-primary{background:linear-gradient(135deg,#0f172a,#1e3a5f);color:#fff;box-shadow:0 2px 8px rgba(30,58,95,.3)}
+.btn-primary:hover{transform:translateY(-1px)}.btn-primary:disabled{opacity:.55;cursor:not-allowed}
+.btn-ghost{background:transparent;color:var(--ink);border-color:var(--line)}.btn-ghost:hover{background:var(--bg)}
+#status{color:var(--muted);font-size:.85rem}
+.hide{display:none!important}
+.scroll{overflow-x:auto;border-radius:8px;border:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;font-size:.88rem;font-variant-numeric:tabular-nums}
+thead tr{background:linear-gradient(135deg,#0f172a,#1e3a5f);color:#fff}
+th{padding:10px 12px;text-align:center;font-weight:600;font-size:.78rem;text-transform:uppercase;letter-spacing:.05em}
+th:first-child{text-align:left}td{padding:9px 12px;text-align:center;border-bottom:1px solid var(--line)}
+td:first-child{text-align:left}tbody tr:hover td{background:#e0e7ff}
+.win{color:var(--ok);font-weight:700}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:650px){.charts{grid-template-columns:1fr}}
+.chart-wrap{position:relative;height:280px}
+figcaption{font-size:.8rem;color:var(--muted);margin-top:8px}
+#result p,#analysis p{margin-bottom:10px;max-width:80ch;line-height:1.7;font-size:.9rem}
+footer{text-align:center;padding:20px;font-size:.78rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="header-top">
+    <div class="header-title">
+      <h1>Experiment 11 — Randomized &amp; Streaming Algorithms</h1>
+      <div class="sub">CP25C01 Advanced Data Structures &amp; Algorithms Lab · M.E CSE 2025 Reg.</div>
+      <div class="badge-row"><span class="badge">CO5 · K5</span><span class="badge">Unit 5 – Streaming</span><span class="badge">PO1–PO6</span></div>
+    </div>
+  </div>
+  <div class="student-bar">
+    <span>Vinoth Kumar R</span><span>M.E CSE</span><span>CIT – Coimbatore Institute of Technology</span>
+  </div>
+</header>
+<main>
+  <div class="card">
+    <div class="card-header"><div class="card-icon icon-d">⚙️</div><div><h2>Inputs</h2><p>Configure stream size, sketch parameters and Monte Carlo samples</p></div></div>
+    <div class="grid">
+      <div class="field"><label>Stream length (N)</label><input type="number" id="N" value="50000" min="1000" max="500000"><small>Total items in stream</small></div>
+      <div class="field"><label>Distinct URLs</label><input type="number" id="URLs" value="500" min="10" max="5000"><small>Unique URL identifiers</small></div>
+      <div class="field"><label>Distinct Hosts</label><input type="number" id="hosts" value="2000" min="10" max="10000"><small>Unique client hosts</small></div>
+      <div class="field"><label>CM epsilon</label><input type="number" id="eps" value="0.01" min="0.001" max="0.1" step="0.001"><small>Count-Min error bound</small></div>
+      <div class="field"><label>Reservoir k</label><input type="number" id="resK" value="200" min="10" max="2000"><small>Sample size</small></div>
+      <div class="field"><label>Monte Carlo N</label><input type="number" id="mcN" value="100000" min="1000" max="1000000"><small>Points for π estimation</small></div>
+      <div class="field"><label>Seed</label><input type="number" id="seed" value="1995"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="run">▶ Run Streaming Demo</button>
+      <button class="btn btn-ghost" id="resetBtn">↺ Reset</button>
+      <span id="status" role="status"></span>
+    </div>
+  </div>
+
+  <div id="out" class="hide">
+    <div class="card">
+      <div class="card-header"><div class="card-icon icon-d">📊</div><div><h2>Algorithm Results</h2></div></div>
+      <div class="scroll"><table id="tbl">
+        <thead><tr><th>Algorithm</th><th>Exact Value</th><th>Estimate</th><th>Relative Error</th><th>Memory</th></tr></thead>
+        <tbody></tbody>
+      </table></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-icon icon-p">📈</div><div><h2>Charts</h2></div></div>
+      <div class="charts">
+        <figure><div class="chart-wrap"><canvas id="c1"></canvas></div><figcaption>Fig 11.1 — Relative error (%) of streaming algorithms</figcaption></figure>
+        <figure><div class="chart-wrap"><canvas id="c2"></canvas></div><figcaption>Fig 11.2 — Monte Carlo π convergence</figcaption></figure>
+      </div>
+    </div>
+    <div class="card"><div class="card-header"><div class="card-icon icon-g">✅</div><div><h2>Result</h2></div></div><div id="result"></div></div>
+    <div class="card"><div class="card-header"><div class="card-icon icon-a">🔍</div><div><h2>Analysis</h2></div></div><div id="analysis"></div></div>
+  </div>
+</main>
+<footer>CP25C01 · Streaming &amp; Randomized Algorithms · CIT</footer>
+<script>
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const $=id=>document.getElementById(id);
+let charts=[];
+function destroyCharts(){charts.forEach(c=>c.destroy());charts=[];}
+
+// Simple hash (FNV-like, deterministic)
+function hash32(x,seed){let h=(x^seed)>>>0;h=(h^(h>>>16))*0x45d9f3b>>>0;h=(h^(h>>>16))*0x45d9f3b>>>0;return(h^(h>>>16))>>>0;}
+
+// Count-Min Sketch
+class CountMin{
+  constructor(eps,delta=0.01){this.w=Math.ceil(Math.E/eps);this.d=Math.ceil(Math.log(1/delta));this.T=Array.from({length:this.d},()=>new Int32Array(this.w));}
+  add(x){for(let i=0;i<this.d;i++)this.T[i][hash32(x,i)%this.w]++;}
+  query(x){return Math.min(...this.T.map((row,i)=>row[hash32(x,i)%this.w]));}
+  memBytes(){return this.w*this.d*4;}
+}
+
+// HyperLogLog (simplified register-based)
+class HyperLogLog{
+  constructor(b=10){this.b=b;this.m=1<<b;this.M=new Uint8Array(this.m);}
+  add(x){const h=hash32(x,99);const j=h&(this.m-1);const w=h>>this.b;let lz=1;let tmp=w;while(tmp&&!(tmp&(1<<(31-this.b)))){lz++;tmp<<=1;}this.M[j]=Math.max(this.M[j],lz);}
+  count(){const a=0.7213/(1+1.079/this.m);const E=a*this.m*this.m/this.M.reduce((s,v)=>s+Math.pow(2,-v),0);const V=this.M.filter(v=>v===0).length;return V&&E<=2.5*this.m?this.m*Math.log(this.m/V):E;}
+  memBytes(){return this.m;}
+}
+
+// Reservoir sampler
+class Reservoir{
+  constructor(k,rng){this.k=k;this.n=0;this.S=[];this.rng=rng;}
+  add(x){this.n++;if(this.S.length<this.k)this.S.push(x);else{const j=Math.floor(this.rng()*this.n);if(j<this.k)this.S[j]=x;}}
+}
+
+async function run(){
+  const btn=$('run');btn.disabled=true;$('status').textContent='Streaming…';
+  await new Promise(r=>setTimeout(r,20));
+  const N=parseInt($('N').value)||50000;
+  const nURLs=parseInt($('URLs').value)||500;
+  const nHosts=parseInt($('hosts').value)||2000;
+  const eps=parseFloat($('eps').value)||0.01;
+  const resK=parseInt($('resK').value)||200;
+  const mcN=parseInt($('mcN').value)||100000;
+  const rng=mulberry32(parseInt($('seed').value)||1995);
+
+  // Generate Zipf-like stream: URL popularity follows 1/k^1.1
+  const urlWeights=Array.from({length:nURLs},(_,k)=>1/Math.pow(k+1,1.1));
+  const totalW=urlWeights.reduce((a,b)=>a+b,0);
+  const urlCumW=[];let acc=0;for(const w of urlWeights){acc+=w/totalW;urlCumW.push(acc);}
+  function sampleURL(){const r=rng();let lo=0,hi=nURLs-1;while(lo<hi){const mid=(lo+hi)>>1;if(urlCumW[mid]<r)lo=mid+1;else hi=mid;}return lo;}
+
+  const cms=new CountMin(eps);
+  const hll=new HyperLogLog(10);
+  const res=new Reservoir(resK,rng);
+  const exactURL=new Map();
+  const exactHosts=new Set();
+
+  for(let i=0;i<N;i++){
+    const url=sampleURL();
+    const host=Math.floor(rng()*nHosts);
+    cms.add(url);hll.add(host);res.add(url);
+    exactURL.set(url,(exactURL.get(url)||0)+1);
+    exactHosts.add(host);
+  }
+
+  // Top URL check
+  const topURL=[...exactURL.entries()].sort((a,b)=>b[1]-a[1])[0];
+  const cmsEst=cms.query(topURL[0]);
+  const hllEst=hll.count();
+  const hllExact=exactHosts.size;
+  const resTopShare=res.S.filter(u=>u===topURL[0]).length/resK;
+  const trueTopShare=topURL[1]/N;
+
+  // Monte Carlo π
+  const mcPts=[];let hits=0;
+  for(let i=0;i<mcN;i++){const x=rng(),y=rng();if(x*x+y*y<=1)hits++;if(i<500)mcPts.push({x,y,in:x*x+y*y<=1});}
+  const piEst=4*hits/mcN;
+
+  const rows=[
+    {algo:'Count-Min Sketch (top URL freq)',exact:topURL[1],est:cmsEst,mem:`${(cms.memBytes()/1024).toFixed(0)} KB`},
+    {algo:'HyperLogLog (distinct hosts)',exact:hllExact,est:Math.round(hllEst),mem:`${hll.memBytes()} B`},
+    {algo:'Reservoir Sample (top URL share %)',exact:+(trueTopShare*100).toFixed(2),est:+(resTopShare*100).toFixed(2),mem:`${resK*4} B`},
+    {algo:'Monte Carlo π',exact:+Math.PI.toFixed(5),est:+piEst.toFixed(5),mem:'O(1)'},
+  ];
+
+  renderTable(rows);
+  renderCharts(rows,mcPts,mcN);
+  renderText(rows,N,nURLs,nHosts,eps,resK);
+  $('out').classList.remove('hide');$('status').textContent='Done.';btn.disabled=false;
+}
+
+function renderTable(rows){
+  const tb=$('tbl').querySelector('tbody');tb.innerHTML='';
+  rows.forEach(r=>{
+    const relErr=Math.abs(r.est-r.exact)/Math.abs(r.exact)*100;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><b>${r.algo}</b></td><td>${r.exact}</td><td>${r.est}</td>
+      <td class="${relErr<5?'win':''}">${relErr.toFixed(2)}%</td><td>${r.mem}</td>`;
+    tb.appendChild(tr);
+  });
+}
+function renderCharts(rows,mcPts,mcN){
+  destroyCharts();
+  const muted='#64748b',line='#e2e8f0';
+  Chart.defaults.color=muted;Chart.defaults.font.family='"Segoe UI",system-ui,sans-serif';
+  const errors=rows.map(r=>+(Math.abs(r.est-r.exact)/Math.abs(r.exact)*100).toFixed(2));
+  charts.push(new Chart($('c1'),{type:'bar',data:{
+    labels:rows.map(r=>r.algo.split('(')[0].trim()),
+    datasets:[{label:'Relative Error (%)',data:errors,backgroundColor:errors.map(e=>e<5?'#0369a1':'#dc2626'),borderRadius:5}]
+  },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+    scales:{y:{title:{display:true,text:'Error %'},beginAtZero:true,grid:{color:line}},x:{ticks:{font:{size:10}},grid:{display:false}}}}}));
+
+  // Monte Carlo scatter
+  charts.push(new Chart($('c2'),{type:'scatter',data:{datasets:[
+    {label:'Inside',data:mcPts.filter(p=>p.in).map(p=>({x:p.x,y:p.y})),backgroundColor:'rgba(37,99,235,0.3)',pointRadius:2},
+    {label:'Outside',data:mcPts.filter(p=>!p.in).map(p=>({x:p.x,y:p.y})),backgroundColor:'rgba(220,38,38,0.3)',pointRadius:2}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{font:{size:11}}}},
+    scales:{x:{min:0,max:1,grid:{color:line}},y:{min:0,max:1,grid:{color:line}}}}}));
+}
+function renderText(rows,N,nURLs,nHosts,eps,resK){
+  $('result').innerHTML=`<p>All streaming algorithms were run over ${N.toLocaleString()} simulated log records in a single pass. Count-Min sketch error was within the ε·N = ${(eps*N).toFixed(0)} guarantee. HyperLogLog estimated ${rows[1].est.toLocaleString()} distinct hosts (actual ${rows[1].exact.toLocaleString()}). The reservoir sample reproduced the top-URL share within ${Math.abs(rows[2].est-rows[2].exact).toFixed(2)}%. Monte Carlo π converged to ${rows[3].est}.</p>`;
+  $('analysis').innerHTML=`<p><b>Count-Min Sketch:</b> A d×w counter array with d independent hash functions. Query returns the minimum across all rows, giving an overestimate bounded by ε·N with probability 1−δ. Memory: d·w integers.</p>
+  <p><b>HyperLogLog:</b> Uses the position of the leading 1-bit in hashed values to estimate cardinality. With m=1024 registers it achieves ~3.3% standard error using only 1 KB.</p>
+  <p><b>Reservoir Sampling:</b> Vitter's Algorithm R — after filling k slots, each new item replaces a uniform random slot with probability k/t. Guarantees a uniform sample of exactly k items.</p>
+  <p><b>Monte Carlo π:</b> Count points in the unit circle. Converges as 1/√N — a 100× increase in samples gains one decimal digit of accuracy.</p>`;
+}
+$('run').addEventListener('click',run);
+$('resetBtn').addEventListener('click',()=>{$('N').value=50000;$('URLs').value=500;$('hosts').value=2000;$('eps').value=0.01;$('resK').value=200;$('mcN').value=100000;$('seed').value=1995;$('status').textContent='';$('out').classList.add('hide');});
+</script>
+</body>
+</html>

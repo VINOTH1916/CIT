@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ex 10: TSP Heuristics</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{--bg:#f1f5fb;--surface:#fff;--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;--ok:#0f766e}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.6 "Segoe UI",system-ui,sans-serif}
+.site-header{background:linear-gradient(135deg,#78350f,#d97706);color:#fff;padding:0}
+.header-top{display:flex;align-items:center;padding:16px 28px 10px;flex-wrap:wrap;gap:12px}
+.header-title h1{font-size:1.25rem;font-weight:700}
+.header-title .sub{font-size:.82rem;opacity:.8;margin-top:3px}
+.badge-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+.badge{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:20px;padding:2px 11px;font-size:.73rem;font-weight:600}
+.student-bar{background:rgba(0,0,0,.18);border-top:1px solid rgba(255,255,255,.1);padding:7px 28px;display:flex;gap:24px;flex-wrap:wrap}
+.student-bar span{font-size:.8rem;opacity:.9;display:flex;align-items:center;gap:6px}
+.student-bar span::before{content:'';width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.6)}
+main{max-width:1060px;margin:0 auto;padding:28px 20px 72px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:22px 24px;margin-bottom:20px}
+.card-header{display:flex;align-items:center;gap:10px;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.card-icon{width:34px;height:34px;border-radius:8px;display:grid;place-items:center;font-size:1.1rem}
+.icon-a{background:#fef3c7;color:#d97706}.icon-g{background:#dcfce7;color:#166634}.icon-r{background:#ffe4e6;color:#be123c}.icon-p{background:#ede9fe;color:#6d28d9}
+.card-header h2{font-size:1rem;font-weight:700}.card-header p{font-size:.8rem;color:var(--muted);margin-top:2px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px}
+.field label{display:block;font-size:.8rem;font-weight:600;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em}
+.field input{width:100%;padding:9px 12px;border:1.5px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit;font-size:.93rem}
+.field input:focus-visible{outline:none;border-color:#d97706}
+.field small{display:block;color:var(--muted);font-size:.75rem;margin-top:4px}
+.btn-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:18px}
+.btn{font:600 .9rem/1 inherit;padding:10px 22px;border-radius:8px;cursor:pointer;border:1.5px solid transparent;transition:all .18s}
+.btn-primary{background:linear-gradient(135deg,#78350f,#d97706);color:#fff}
+.btn-primary:hover{transform:translateY(-1px)}.btn-primary:disabled{opacity:.55;cursor:not-allowed}
+.btn-ghost{background:transparent;color:var(--ink);border-color:var(--line)}.btn-ghost:hover{background:var(--bg)}
+#status{color:var(--muted);font-size:.85rem}
+.hide{display:none!important}
+.scroll{overflow-x:auto;border-radius:8px;border:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;font-size:.88rem;font-variant-numeric:tabular-nums}
+thead tr{background:linear-gradient(135deg,#78350f,#d97706);color:#fff}
+th{padding:10px 12px;text-align:center;font-weight:600;font-size:.78rem;text-transform:uppercase;letter-spacing:.05em}
+th:first-child{text-align:left}td{padding:9px 12px;text-align:center;border-bottom:1px solid var(--line)}
+td:first-child{text-align:left}tbody tr:hover td{background:#fef9c3}
+.win{color:var(--ok);font-weight:700}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:650px){.charts{grid-template-columns:1fr}}
+.chart-wrap{position:relative;height:280px}
+.tour-canvas{border:1px solid var(--line);border-radius:8px;background:#fff;width:100%;max-width:400px}
+figcaption{font-size:.8rem;color:var(--muted);margin-top:8px}
+#result p,#analysis p{margin-bottom:10px;max-width:80ch;line-height:1.7;font-size:.9rem}
+footer{text-align:center;padding:20px;font-size:.78rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="header-top">
+    <div class="header-title">
+      <h1>Experiment 10 — TSP: NP-Hard Problem &amp; Heuristics</h1>
+      <div class="sub">CP25C01 Advanced Data Structures &amp; Algorithms Lab · M.E CSE 2025 Reg.</div>
+      <div class="badge-row"><span class="badge">CO5 · K5</span><span class="badge">Unit 5 – NP-Hard / Heuristics</span><span class="badge">PO1–PO6</span></div>
+    </div>
+  </div>
+  <div class="student-bar">
+    <span>Vinoth Kumar R</span><span>M.E CSE</span><span>CIT – Coimbatore Institute of Technology</span>
+  </div>
+</header>
+<main>
+  <div class="card">
+    <div class="card-header"><div class="card-icon icon-a">⚙️</div><div><h2>Inputs</h2><p>Configure cities and algorithm parameters</p></div></div>
+    <div class="grid">
+      <div class="field"><label>Number of cities (n)</label><input type="number" id="n" value="12" min="4" max="20"><small>4–20 cities (exact DP ≤ 15 recommended)</small></div>
+      <div class="field"><label>Map size</label><input type="number" id="mapSize" value="100" min="10" max="500"><small>Cities placed in [0, mapSize]²</small></div>
+      <div class="field"><label>SA iterations</label><input type="number" id="saIter" value="30000" min="1000" max="200000"><small>Simulated annealing steps</small></div>
+      <div class="field"><label>SA cooling α</label><input type="number" id="alpha" value="0.9995" min="0.99" max="0.9999" step="0.0001"><small>Geometric cooling rate</small></div>
+      <div class="field"><label>Seed</label><input type="number" id="seed" value="5"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="run">▶ Run All Algorithms</button>
+      <button class="btn btn-ghost" id="resetBtn">↺ Reset</button>
+      <span id="status" role="status"></span>
+    </div>
+  </div>
+
+  <div id="out" class="hide">
+    <div class="card">
+      <div class="card-header"><div class="card-icon icon-a">📊</div><div><h2>Tour Length Results</h2></div></div>
+      <div class="scroll"><table id="tbl">
+        <thead><tr><th>Algorithm</th><th>Tour Length</th><th>Time (ms)</th><th>Gap vs NN (%)</th></tr></thead>
+        <tbody></tbody>
+      </table></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-icon icon-p">🗺️</div><div><h2>Tour Visualisation</h2></div></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px">
+        <figure><canvas id="tourNN" class="tour-canvas" width="300" height="280"></canvas><figcaption>Nearest Neighbour tour</figcaption></figure>
+        <figure><canvas id="tourOpt" class="tour-canvas" width="300" height="280"></canvas><figcaption>Best tour (2-opt or SA)</figcaption></figure>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-icon icon-p">📈</div><div><h2>Comparison Chart</h2></div></div>
+      <div class="chart-wrap" style="height:280px"><canvas id="c1"></canvas></div>
+      <figcaption>Fig 10.1 — Tour length by algorithm</figcaption>
+    </div>
+    <div class="card"><div class="card-header"><div class="card-icon icon-g">✅</div><div><h2>Result</h2></div></div><div id="result"></div></div>
+    <div class="card"><div class="card-header"><div class="card-icon icon-a">🔍</div><div><h2>Analysis</h2></div></div><div id="analysis"></div></div>
+  </div>
+</main>
+<footer>CP25C01 · TSP Heuristics · CIT</footer>
+<script>
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const $=id=>document.getElementById(id);
+let charts=[];
+function destroyCharts(){charts.forEach(c=>c.destroy());charts=[];}
+
+function dist(a,b){return Math.hypot(a[0]-b[0],a[1]-b[1]);}
+function distMatrix(pts){return pts.map(a=>pts.map(b=>dist(a,b)));}
+function tourLen(t,D){let s=0;for(let i=0;i<t.length;i++)s+=D[t[i]][t[(i+1)%t.length]];return s;}
+
+function nearestNeighbour(D,start=0){
+  const n=D.length,un=new Set(Array.from({length:n},(_,i)=>i));un.delete(start);const t=[start];
+  while(un.size){let nx=-1,best=1e15;for(const v of un)if(D[t[t.length-1]][v]<best){best=D[t[t.length-1]][v];nx=v;}t.push(nx);un.delete(nx);}
+  return t;
+}
+function twoOpt(t,D){
+  const n=t.length;let improved=true;
+  while(improved){improved=false;
+    for(let i=0;i<n-1;i++)for(let j=i+2;j<(i===0?n-1:n);j++){
+      const[a,b,c,d]=[t[i],t[i+1],t[j],t[(j+1)%n]];
+      if(D[a][c]+D[b][d]<D[a][b]+D[c][d]-1e-10){t.splice(i+1,j-i,t.slice(i+1,j+1).reverse());improved=true;}
+    }
+  }
+  return t;
+}
+function simulatedAnnealing(D,T0,alpha,iters,rng){
+  const n=D.length;let cur=nearestNeighbour(D);let cl=tourLen(cur,D);let best=cur.slice(),bl=cl;
+  let T=T0||cl/n;
+  for(let it=0;it<iters;it++){
+    const i=Math.floor(rng()*n),j=Math.floor(rng()*n);if(Math.abs(i-j)<2)continue;
+    const[ii,jj]=[Math.min(i,j),Math.max(i,j)];
+    const[a,b,c,d]=[cur[ii],cur[ii+1],cur[jj],cur[(jj+1)%n]];
+    const delta=D[a][c]+D[b][d]-D[a][b]-D[c][d];
+    if(delta<0||rng()<Math.exp(-delta/T)){cur.splice(ii+1,jj-ii,cur.slice(ii+1,jj+1).reverse());cl+=delta;if(cl<bl){best=cur.slice();bl=cl;}}
+    T*=alpha;
+  }
+  return{tour:best,len:bl};
+}
+
+function drawTour(canvasId,pts,tour,color='#2563eb'){
+  const cv=$(canvasId),ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height,pad=20;
+  ctx.clearRect(0,0,W,H);
+  const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);
+  const minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
+  const sx=p=>pad+(p[0]-minX)/(maxX-minX||1)*(W-2*pad);
+  const sy=p=>pad+(p[1]-minY)/(maxY-minY||1)*(H-2*pad);
+  // Draw edges
+  ctx.strokeStyle=color;ctx.lineWidth=1.5;ctx.beginPath();
+  for(let i=0;i<=tour.length;i++){const p=pts[tour[i%tour.length]];i===0?ctx.moveTo(sx(p),sy(p)):ctx.lineTo(sx(p),sy(p));}
+  ctx.stroke();
+  // Draw cities
+  pts.forEach((p,i)=>{ctx.beginPath();ctx.arc(sx(p),sy(p),4,0,Math.PI*2);ctx.fillStyle=i===tour[0]?'#dc2626':'#2563eb';ctx.fill();});
+}
+
+async function run(){
+  const btn=$('run');btn.disabled=true;$('status').textContent='Running…';
+  await new Promise(r=>setTimeout(r,20));
+  const n=Math.min(20,Math.max(4,parseInt($('n').value)||12));
+  const mapSize=parseInt($('mapSize').value)||100;
+  const saIter=parseInt($('saIter').value)||30000;
+  const alpha=parseFloat($('alpha').value)||0.9995;
+  const rng=mulberry32(parseInt($('seed').value)||5);
+
+  const pts=Array.from({length:n},()=>[rng()*mapSize,rng()*mapSize]);
+  const D=distMatrix(pts);
+
+  // Nearest Neighbour
+  let t0=performance.now();const nn=nearestNeighbour(D);const nnLen=tourLen(nn,D);const nnMs=performance.now()-t0;
+  // 2-opt
+  t0=performance.now();const two=twoOpt(nn.slice(),D);const twoLen=tourLen(two,D);const twoMs=performance.now()-t0;
+  // SA
+  t0=performance.now();const{tour:sa,len:saLen}=simulatedAnnealing(D,null,alpha,saIter,rng);const saMs=performance.now()-t0;
+
+  const rows=[
+    {name:'Nearest Neighbour',len:nnLen,ms:nnMs,tour:nn},
+    {name:'2-opt Local Search',len:twoLen,ms:twoMs,tour:two},
+    {name:'Simulated Annealing',len:saLen,ms:saMs,tour:sa},
+  ];
+
+  renderTable(rows,nnLen);
+  drawTour('tourNN',pts,nn,'#dc2626');
+  const bestTour=saLen<twoLen?sa:two;
+  drawTour('tourOpt',pts,bestTour,'#0369a1');
+  renderChart(rows);
+  renderText(rows,nnLen,n);
+  $('out').classList.remove('hide');$('status').textContent='Done.';btn.disabled=false;
+}
+
+function renderTable(rows,nnLen){
+  const tb=$('tbl').querySelector('tbody');tb.innerHTML='';
+  const best=Math.min(...rows.map(r=>r.len));
+  rows.forEach(r=>{
+    const gap=((r.len-nnLen)/nnLen*100).toFixed(1);
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><b>${r.name}</b></td>
+      <td class="${r.len===best?'win':''}">${r.len.toFixed(1)}</td>
+      <td>${r.ms.toFixed(1)}</td>
+      <td>${r.name==='Nearest Neighbour'?'baseline':gap+'%'}</td>`;
+    tb.appendChild(tr);
+  });
+}
+function renderChart(rows){
+  destroyCharts();
+  const muted='#64748b',line='#e2e8f0';
+  Chart.defaults.color=muted;Chart.defaults.font.family='"Segoe UI",system-ui,sans-serif';
+  charts.push(new Chart($('c1'),{type:'bar',data:{
+    labels:rows.map(r=>r.name),
+    datasets:[{label:'Tour Length',data:rows.map(r=>r.len),backgroundColor:['#dc2626','#d97706','#0369a1'],borderRadius:5}]
+  },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+    scales:{y:{title:{display:true,text:'Tour Length'},grid:{color:line}},x:{grid:{display:false}}}}}));
+}
+function renderText(rows,nnLen,n){
+  const best=rows.reduce((a,b)=>b.len<a.len?b:a);
+  const imp=(((nnLen-best.len)/nnLen)*100).toFixed(1);
+  $('result').innerHTML=`<p>TSP was solved for ${n} randomly placed cities. Nearest Neighbour gave a tour of length <b>${nnLen.toFixed(1)}</b>. The best heuristic (<b>${best.name}</b>) improved it to <b>${best.len.toFixed(1)}</b> — a <b>${imp}% improvement</b>. The search space for n=${n} has ${Array.from({length:n-1},(_,i)=>i+1).reduce((a,b)=>a*b,1)/2} tours.</p>`;
+  $('analysis').innerHTML=`<p><b>NP-hardness:</b> TSP decision version is NP-complete (reduction from Hamiltonian Cycle). Brute-force checks (n-1)!/2 tours. Held-Karp DP runs in Θ(n²·2ⁿ) — still exponential.</p>
+  <p><b>Nearest Neighbour:</b> Greedy O(n²) construction. Can be up to 25% above optimum. Good starting point for local search.</p>
+  <p><b>2-opt:</b> Repeatedly reverses a segment of the tour if it reduces total length. Converges to a local optimum. Usually much better than NN alone.</p>
+  <p><b>Simulated Annealing:</b> Accepts worse moves with probability exp(-Δ/T) to escape local optima. Geometric cooling T ← α·T. Quality depends on cooling schedule and iteration count.</p>`;
+}
+$('run').addEventListener('click',run);
+$('resetBtn').addEventListener('click',()=>{$('n').value=12;$('mapSize').value=100;$('saIter').value=30000;$('alpha').value=0.9995;$('seed').value=5;$('status').textContent='';$('out').classList.add('hide');});
+</script>
+</body>
+</html>

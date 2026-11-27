@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ex 6: Maximum Flow – Traffic Network</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{--bg:#f1f5fb;--surface:#fff;--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;--ok:#0f766e}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.6 "Segoe UI",system-ui,sans-serif}
+.site-header{background:linear-gradient(135deg,#7c2d12,#ea580c);color:#fff;padding:0}
+.header-top{display:flex;align-items:center;padding:16px 28px 10px;flex-wrap:wrap;gap:12px}
+.header-title h1{font-size:1.25rem;font-weight:700}
+.header-title .sub{font-size:.82rem;opacity:.8;margin-top:3px}
+.badge-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+.badge{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:20px;padding:2px 11px;font-size:.73rem;font-weight:600}
+.student-bar{background:rgba(0,0,0,.18);border-top:1px solid rgba(255,255,255,.1);padding:7px 28px;display:flex;align-items:center;gap:24px;flex-wrap:wrap}
+.student-bar span{font-size:.8rem;opacity:.9;display:flex;align-items:center;gap:6px}
+.student-bar span::before{content:'';width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.6)}
+main{max-width:1060px;margin:0 auto;padding:28px 20px 72px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:22px 24px;margin-bottom:20px}
+.card-header{display:flex;align-items:center;gap:10px;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.card-icon{width:34px;height:34px;border-radius:8px;display:grid;place-items:center;font-size:1.1rem}
+.icon-orange{background:#ffedd5;color:#ea580c}.icon-blue{background:#e0f2fe;color:#0369a1}.icon-green{background:#dcfce7;color:#166534}.icon-amber{background:#fef3c7;color:#b45309}.icon-purple{background:#ede9fe;color:#6d28d9}
+.card-header h2{font-size:1rem;font-weight:700}.card-header p{font-size:.8rem;color:var(--muted);margin-top:2px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+.field label{display:block;font-size:.8rem;font-weight:600;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em}
+.field input,.field textarea{width:100%;padding:9px 12px;border:1.5px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit;font-size:.93rem}
+.field textarea{font-family:monospace;resize:vertical}
+.field input:focus-visible{outline:none;border-color:#ea580c}
+.field small{display:block;color:var(--muted);font-size:.75rem;margin-top:4px}
+.btn-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:18px}
+.btn{font:600 .9rem/1 inherit;padding:10px 22px;border-radius:8px;cursor:pointer;border:1.5px solid transparent;transition:all .18s}
+.btn-primary{background:linear-gradient(135deg,#7c2d12,#ea580c);color:#fff}
+.btn-primary:hover{transform:translateY(-1px)}.btn-primary:disabled{opacity:.55;cursor:not-allowed}
+.btn-ghost{background:transparent;color:var(--ink);border-color:var(--line)}.btn-ghost:hover{background:var(--bg)}
+#status{color:var(--muted);font-size:.85rem}
+.hide{display:none!important}
+.scroll{overflow-x:auto;border-radius:8px;border:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;font-size:.88rem;font-variant-numeric:tabular-nums}
+thead tr{background:linear-gradient(135deg,#7c2d12,#ea580c);color:#fff}
+th{padding:10px 12px;text-align:center;font-weight:600;font-size:.78rem;text-transform:uppercase;letter-spacing:.05em}
+th:first-child{text-align:left}td{padding:9px 12px;text-align:center;border-bottom:1px solid var(--line)}
+td:first-child{text-align:left}tbody tr:hover td{background:#ffedd5}
+.win{color:var(--ok);font-weight:700}.sat{color:#ea580c;font-weight:700}
+.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}
+.chart-wrap{position:relative;height:300px}
+figcaption{font-size:.8rem;color:var(--muted);margin-top:8px}
+.aug-log{background:#fff7ed;border:1.5px solid #fed7aa;border-radius:8px;padding:12px 14px;font-family:monospace;font-size:.82rem;color:#7c2d12;line-height:1.9;max-height:200px;overflow-y:auto}
+#result p,#analysis p{margin-bottom:10px;max-width:80ch;line-height:1.7;font-size:.9rem}
+footer{text-align:center;padding:20px;font-size:.78rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="header-top">
+    <div class="header-title">
+      <h1>Experiment 6 — Maximum Flow: Traffic Network Simulation</h1>
+      <div class="sub">CP25C01 Advanced Data Structures &amp; Algorithms Lab · M.E CSE 2025 Reg.</div>
+      <div class="badge-row"><span class="badge">CO3 · K4</span><span class="badge">Unit 3 – Graph Algorithms</span><span class="badge">PO1–PO6</span></div>
+    </div>
+  </div>
+  <div class="student-bar">
+    <span>Vinoth Kumar R</span><span>M.E CSE</span><span>CIT – Coimbatore Institute of Technology</span>
+  </div>
+</header>
+<main>
+  <div class="card">
+    <div class="card-header"><div class="card-icon icon-orange">🚦</div><div><h2>Network Input</h2><p>Format: "from to capacity" one per line. Node names can be text.</p></div></div>
+    <div class="grid">
+      <div class="field" style="grid-column:1/-1">
+        <label>Road Network (from to capacity)</label>
+        <textarea id="edges" rows="13">Source Guindy 1800
+Source Saidapet 1500
+Guindy T.Nagar 900
+Guindy Vadapalani 1000
+Saidapet T.Nagar 800
+Saidapet Kodambakkam 700
+T.Nagar Egmore 1200
+Vadapalani Kodambakkam 400
+Vadapalani Egmore 600
+Kodambakkam Central 900
+Egmore Central 1600
+T.Nagar Kodambakkam 300</textarea>
+      </div>
+      <div class="field"><label>Source Node</label><input id="src" value="Source"></div>
+      <div class="field"><label>Sink Node</label><input id="snk" value="Central"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="run">▶ Run Edmonds-Karp</button>
+      <button class="btn btn-ghost" id="resetBtn">↺ Reset</button>
+      <span id="status" role="status"></span>
+    </div>
+  </div>
+
+  <div id="out" class="hide">
+    <div class="card">
+      <div class="card-header"><div class="card-icon icon-orange">📊</div><div><h2>Results</h2></div></div>
+      <p style="font-size:1rem;font-weight:700;color:#ea580c;margin-bottom:12px">Maximum Flow: <span id="maxflow"></span> vehicles/hour · <span id="augCount"></span> augmentations</p>
+      <p style="font-weight:600;margin-bottom:8px;font-size:.88rem">Augmenting Paths:</p>
+      <div class="aug-log" id="augLog"></div>
+      <p style="font-weight:600;margin:14px 0 8px;font-size:.88rem">Min-Cut Bottleneck Roads:</p>
+      <div id="cutList" style="font-size:.88rem;padding:10px 14px;background:#fff7ed;border-radius:8px;border:1px solid #fed7aa;font-family:monospace"></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-icon icon-orange">🛣️</div><div><h2>Road Utilisation</h2></div></div>
+      <div class="scroll"><table id="utilTbl">
+        <thead><tr><th>Road</th><th>Flow</th><th>Capacity</th><th>Utilisation %</th></tr></thead>
+        <tbody></tbody>
+      </table></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-icon icon-purple">📈</div><div><h2>Graphical Analysis</h2></div></div>
+      <div class="charts">
+        <figure><div class="chart-wrap"><canvas id="c1"></canvas></div><figcaption>Fig 6.1 — Road utilisation at max flow (%)</figcaption></figure>
+        <figure><div class="chart-wrap"><canvas id="c2"></canvas></div><figcaption>Fig 6.2 — Flow vs Capacity per road</figcaption></figure>
+      </div>
+    </div>
+    <div class="card"><div class="card-header"><div class="card-icon icon-green">✅</div><div><h2>Result</h2></div></div><div id="result"></div></div>
+    <div class="card"><div class="card-header"><div class="card-icon icon-amber">🔍</div><div><h2>Analysis</h2></div></div><div id="analysis"></div></div>
+  </div>
+</main>
+<footer>CP25C01 · Maximum Flow Traffic Simulation · CIT</footer>
+<script>
+const $=id=>document.getElementById(id);
+let charts=[];
+function destroyCharts(){charts.forEach(c=>c.destroy());charts=[];}
+
+class FlowNetwork{
+  constructor(){this.names=[];this.idx={};this.cap={};this.adj={};}
+  _id(name){if(!(name in this.idx)){this.idx[name]=this.names.length;this.names.push(name);this.cap[name]=this.cap[name]||{};this.adj[name]=this.adj[name]||new Set();}return this.idx[name];}
+  addEdge(u,v,c){this._id(u);this._id(v);this.cap[u]=this.cap[u]||{};this.cap[u][v]=(this.cap[u][v]||0)+c;this.adj[u]=this.adj[u]||new Set();this.adj[u].add(v);this.adj[v]=this.adj[v]||new Set();this.adj[v].add(u);}
+  edmonds_karp(src,snk){
+    const flow={};const nodes=this.names;
+    for(const u of nodes){flow[u]={};for(const v of nodes)flow[u][v]=0;}
+    const paths=[];let total=0,it=0;
+    while(true){
+      const parent={};parent[src]=src;const q=[src];
+      while(q.length&&!(snk in parent)){
+        const u=q.shift();
+        for(const v of(this.adj[u]||new Set())){
+          if(!(v in parent)&&((this.cap[u]&&this.cap[u][v]||0)-(flow[u][v]||0))>0){parent[v]=u;q.push(v);}
+        }
+      }
+      if(!(snk in parent))break;
+      let b=1e15,v=snk;while(v!==src){const u=parent[v];b=Math.min(b,(this.cap[u]&&this.cap[u][v]||0)-(flow[u][v]||0));v=u;}
+      let path=[snk],v2=snk;while(v2!==src){const u=parent[v2];flow[u][v2]=(flow[u][v2]||0)+b;flow[v2][u]=(flow[v2][u]||0)-b;v2=u;path.push(u);}
+      total+=b;it++;paths.push({path:path.reverse(),b});
+    }
+    return{total,flow,it,paths};
+  }
+  minCut(src,flow){
+    const seen=new Set([src]);const q=[src];
+    while(q.length){const u=q.shift();for(const v of(this.adj[u]||new Set())){if(!seen.has(v)&&((this.cap[u]&&this.cap[u][v]||0)-(flow[u][v]||0))>0){seen.add(v);q.push(v);}}}
+    return this.names.filter(u=>seen.has(u)).flatMap(u=>[...(this.adj[u]||new Set())].filter(v=>!seen.has(v)&&(this.cap[u]&&this.cap[u][v]||0)>0).map(v=>({u,v,c:this.cap[u][v]})));
+  }
+}
+
+async function run(){
+  const btn=$('run');btn.disabled=true;$('status').textContent='Computing…';
+  await new Promise(r=>setTimeout(r,20));
+  const lines=$('edges').value.trim().split('\n').map(l=>l.trim()).filter(Boolean);
+  const src=$('src').value.trim(),snk=$('snk').value.trim();
+  const g=new FlowNetwork();
+  const edgeList=[];
+  for(const l of lines){const p=l.split(/\s+/);if(p.length<3)continue;const[u,v,c]=[p[0],p[1],parseInt(p[2])];g.addEdge(u,v,c);edgeList.push({u,v,c});}
+  if(!g.adj[src]){alert('Source node not found in edges');btn.disabled=false;return;}
+  const{total,flow,it,paths}=g.edmonds_karp(src,snk);
+  const cut=g.minCut(src,flow);
+  renderResults(total,it,paths,cut,flow,edgeList,g);
+  $('out').classList.remove('hide');$('status').textContent='Done.';btn.disabled=false;
+}
+
+function renderResults(total,it,paths,cut,flow,edgeList,g){
+  $('maxflow').textContent=total.toLocaleString();
+  $('augCount').textContent=it;
+  $('augLog').innerHTML=paths.map(p=>`Aug ${paths.indexOf(p)+1}: ${p.path.join(' → ')} &nbsp;(+${p.b})`).join('<br>');
+  const cutCap=cut.reduce((s,e)=>s+e.c,0);
+  $('cutList').innerHTML=cut.map(e=>`${e.u} → ${e.v} &nbsp;(capacity ${e.c})`).join('<br>')+`<br><b>Cut capacity = ${cutCap} (= max flow ✓)</b>`;
+
+  const tb=$('utilTbl').querySelector('tbody');tb.innerHTML='';
+  edgeList.forEach(e=>{
+    const f=(flow[e.u]&&flow[e.u][e.v])||0;const pct=(f/e.c*100).toFixed(1);
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><b>${e.u}</b> → ${e.v}</td><td>${f}</td><td>${e.c}</td><td class="${pct>=100?'sat':pct>60?'win':''}">${pct}%</td>`;
+    tb.appendChild(tr);
+  });
+  renderCharts(edgeList,flow);
+  $('result').innerHTML=`<p>Edmonds-Karp algorithm found a maximum throughput of <b>${total.toLocaleString()} vehicles/hour</b> in <b>${it} augmentations</b>. The minimum cut has capacity <b>${cutCap}</b> (equals max flow, verifying the max-flow min-cut theorem). ${cut.length} roads form the bottleneck: ${cut.map(e=>`${e.u}→${e.v}`).join(', ')}.</p>`;
+  $('analysis').innerHTML=`<p><b>Edmonds-Karp:</b> Uses BFS to find shortest augmenting paths (fewest edges). This guarantees O(VE²) augmentations in the worst case, far better than arbitrary-path Ford-Fulkerson.</p>
+  <p><b>Min-cut:</b> After the algorithm terminates, all vertices reachable from the source in the residual graph form the S-side of the min-cut. All fully-saturated edges from S to T form the cut. Max-flow = min-cut is confirmed when cut capacity equals total flow.</p>
+  <p><b>What-if analysis:</b> Improving roads not in the min-cut cannot increase the maximum flow — only upgrading or adding min-cut edges helps. This guides infrastructure investment decisions.</p>`;
+}
+function renderCharts(edgeList,flow){
+  destroyCharts();
+  const muted='#64748b',line='#e2e8f0';
+  Chart.defaults.color=muted;Chart.defaults.font.family='"Segoe UI",system-ui,sans-serif';
+  const labels=edgeList.map(e=>`${e.u.slice(0,5)}→${e.v.slice(0,5)}`);
+  const pcts=edgeList.map(e=>{const f=(flow[e.u]&&flow[e.u][e.v])||0;return+(f/e.c*100).toFixed(1);});
+  const bgColors=pcts.map(p=>p>=100?'#dc2626':p>60?'#ea580c':'#64748b');
+
+  charts.push(new Chart($('c1'),{type:'bar',data:{labels,datasets:[{label:'Utilisation (%)',data:pcts,backgroundColor:bgColors,borderRadius:3}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{y:{max:100,title:{display:true,text:'%'},grid:{color:line}},x:{ticks:{font:{size:9}},grid:{display:false}}}}}));
+
+  charts.push(new Chart($('c2'),{type:'bar',data:{labels,datasets:[
+    {label:'Flow',data:edgeList.map(e=>(flow[e.u]&&flow[e.u][e.v])||0),backgroundColor:'#ea580c',borderRadius:3},
+    {label:'Capacity',data:edgeList.map(e=>e.c),backgroundColor:'#fed7aa',borderRadius:3}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'}},
+    scales:{y:{title:{display:true,text:'Vehicles/hr'},grid:{color:line}},x:{ticks:{font:{size:9}},grid:{display:false}}}}}));
+}
+$('run').addEventListener('click',run);
+$('resetBtn').addEventListener('click',()=>{$('src').value='Source';$('snk').value='Central';$('status').textContent='';$('out').classList.add('hide');});
+</script>
+</body>
+</html>

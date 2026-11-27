@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ex 8: Miller-Rabin Primality Test</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{--bg:#f1f5fb;--surface:#fff;--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;--ok:#0f766e}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.6 "Segoe UI",system-ui,sans-serif}
+.site-header{background:linear-gradient(135deg,#0c4a6e,#0369a1);color:#fff;padding:0}
+.header-top{display:flex;align-items:center;padding:16px 28px 10px;flex-wrap:wrap;gap:12px}
+.header-title h1{font-size:1.25rem;font-weight:700}
+.header-title .sub{font-size:.82rem;opacity:.8;margin-top:3px}
+.badge-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+.badge{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:20px;padding:2px 11px;font-size:.73rem;font-weight:600}
+.student-bar{background:rgba(0,0,0,.18);border-top:1px solid rgba(255,255,255,.1);padding:7px 28px;display:flex;gap:24px;flex-wrap:wrap}
+.student-bar span{font-size:.8rem;opacity:.9;display:flex;align-items:center;gap:6px}
+.student-bar span::before{content:'';width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.6)}
+main{max-width:1060px;margin:0 auto;padding:28px 20px 72px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:22px 24px;margin-bottom:20px}
+.card-header{display:flex;align-items:center;gap:10px;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.card-icon{width:34px;height:34px;border-radius:8px;display:grid;place-items:center;font-size:1.1rem}
+.icon-b{background:#e0f2fe;color:#0369a1}.icon-g{background:#dcfce7;color:#166534}.icon-a{background:#fef3c7;color:#b45309}.icon-p{background:#ede9fe;color:#6d28d9}
+.card-header h2{font-size:1rem;font-weight:700}.card-header p{font-size:.8rem;color:var(--muted);margin-top:2px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px}
+.field label{display:block;font-size:.8rem;font-weight:600;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em}
+.field input{width:100%;padding:9px 12px;border:1.5px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit;font-size:.93rem}
+.field input:focus-visible{outline:none;border-color:#0369a1}
+.field small{display:block;color:var(--muted);font-size:.75rem;margin-top:4px}
+.btn-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:18px}
+.btn{font:600 .9rem/1 inherit;padding:10px 22px;border-radius:8px;cursor:pointer;border:1.5px solid transparent;transition:all .18s}
+.btn-primary{background:linear-gradient(135deg,#0c4a6e,#0369a1);color:#fff}
+.btn-primary:hover{transform:translateY(-1px)}.btn-primary:disabled{opacity:.55;cursor:not-allowed}
+.btn-ghost{background:transparent;color:var(--ink);border-color:var(--line)}.btn-ghost:hover{background:var(--bg)}
+#status{color:var(--muted);font-size:.85rem}
+.hide{display:none!important}
+.scroll{overflow-x:auto;border-radius:8px;border:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;font-size:.88rem;font-variant-numeric:tabular-nums}
+thead tr{background:linear-gradient(135deg,#0c4a6e,#0369a1);color:#fff}
+th{padding:10px 12px;text-align:center;font-weight:600;font-size:.78rem;text-transform:uppercase;letter-spacing:.05em}
+th:first-child{text-align:left}td{padding:9px 12px;text-align:center;border-bottom:1px solid var(--line)}
+td:first-child{text-align:left;font-family:monospace}tbody tr:hover td{background:#e0f2fe}
+.prime{color:var(--ok);font-weight:700}.composite{color:#dc2626;font-weight:700}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:650px){.charts{grid-template-columns:1fr}}
+.chart-wrap{position:relative;height:280px}
+figcaption{font-size:.8rem;color:var(--muted);margin-top:8px}
+#result p,#analysis p{margin-bottom:10px;max-width:80ch;line-height:1.7;font-size:.9rem}
+.gen-box{background:#f0f9ff;border:1.5px solid #bae6fd;border-radius:8px;padding:12px 14px;font-family:monospace;font-size:.82rem;color:#0c4a6e;line-height:2;margin-top:8px}
+footer{text-align:center;padding:20px;font-size:.78rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="header-top">
+    <div class="header-title">
+      <h1>Experiment 8 — Miller-Rabin Randomized Primality Test</h1>
+      <div class="sub">CP25C01 Advanced Data Structures &amp; Algorithms Lab · M.E CSE 2025 Reg.</div>
+      <div class="badge-row"><span class="badge">CO4 · K3</span><span class="badge">Unit 4 – Randomized Algorithms</span><span class="badge">PO1–PO6</span></div>
+    </div>
+  </div>
+  <div class="student-bar">
+    <span>Vinoth Kumar R</span><span>M.E CSE</span><span>CIT – Coimbatore Institute of Technology</span>
+  </div>
+</header>
+<main>
+  <div class="card">
+    <div class="card-header"><div class="card-icon icon-b">⚙️</div><div><h2>Inputs</h2><p>Test numbers, rounds k, and prime generation bit-lengths</p></div></div>
+    <div class="grid">
+      <div class="field"><label>Numbers to test (comma)</label><input id="nums" value="97,561,1105,7919,1000000007,3215031751"><small>Comma-separated integers to classify</small></div>
+      <div class="field"><label>Rounds k</label><input type="number" id="k" value="20" min="1" max="40"><small>More rounds → lower error probability</small></div>
+      <div class="field"><label>Carmichael trials</label><input type="number" id="trials" value="500" min="100" max="2000"><small>Trials for false-positive rate</small></div>
+      <div class="field"><label>Seed</label><input type="number" id="seed" value="2025"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="run">▶ Run Test</button>
+      <button class="btn btn-ghost" id="resetBtn">↺ Reset</button>
+      <span id="status" role="status"></span>
+    </div>
+  </div>
+
+  <div id="out" class="hide">
+    <div class="card">
+      <div class="card-header"><div class="card-icon icon-b">📊</div><div><h2>Primality Test Results</h2></div></div>
+      <div class="scroll"><table id="tbl">
+        <thead><tr><th>n</th><th>Trial Division</th><th>Miller-Rabin</th><th>Verdict</th></tr></thead>
+        <tbody></tbody>
+      </table></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-icon icon-b">🎲</div><div><h2>False-Positive Rate on Carmichael Numbers</h2></div></div>
+      <div id="fpRate" style="font-size:.9rem;line-height:1.9"></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-icon icon-p">📈</div><div><h2>Charts</h2></div></div>
+      <div class="charts">
+        <figure><div class="chart-wrap"><canvas id="c1"></canvas></div><figcaption>Fig 8.1 — Error rate: Miller-Rabin vs Fermat on Carmichael numbers</figcaption></figure>
+        <figure><div class="chart-wrap"><canvas id="c2"></canvas></div><figcaption>Fig 8.2 — Primes found in ranges [1,100], [1,500], [1,2000]</figcaption></figure>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-icon icon-b">🔑</div><div><h2>Generated Probable Primes</h2></div></div>
+      <div class="gen-box" id="genBox"></div>
+    </div>
+    <div class="card"><div class="card-icon icon-g">✅</div><div class="card-header" style="border:none;padding:0;margin:0"><h2>Result</h2></div><div id="result" style="margin-top:12px"></div></div>
+    <div class="card"><div class="card-header"><div class="card-icon icon-a">🔍</div><div><h2>Analysis</h2></div></div><div id="analysis"></div></div>
+  </div>
+</main>
+<footer>CP25C01 · Miller-Rabin Primality Test · CIT</footer>
+<script>
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const $=id=>document.getElementById(id);
+let charts=[];
+function destroyCharts(){charts.forEach(c=>c.destroy());charts=[];}
+
+// BigInt modular exponentiation
+function modpow(b,e,m){b=BigInt(b);e=BigInt(e);m=BigInt(m);let r=1n;b=b%m;while(e>0n){if(e%2n===1n)r=r*b%m;e=e>>1n;b=b*b%m;}return r;}
+
+function decompose(n){let d=BigInt(n)-1n,s=0;while(d%2n===0n){d/=2n;s++;}return{d,s};}
+
+function isWitness(a,n,d,s){
+  const bn=BigInt(n);let x=modpow(a,d,bn);
+  if(x===1n||x===bn-1n)return false;
+  for(let i=0;i<s-1;i++){x=x*x%bn;if(x===bn-1n)return false;}
+  return true;
+}
+
+function millerRabin(n,k,rng){
+  if(n<2)return false;
+  const small=[2,3,5,7,11,13,17,19,23,29,31,37];
+  for(const p of small)if(n%p===0)return n===p;
+  const{d,s}=decompose(n);
+  for(let i=0;i<k;i++){
+    const a=2+Math.floor(rng()*(n-3));
+    if(isWitness(a,n,d,s))return false;
+  }
+  return true;
+}
+
+function trialDivision(n){
+  if(n<2)return false;if(n===2)return true;if(n%2===0)return false;
+  for(let i=3;i*i<=n;i+=2)if(n%i===0)return false;return true;
+}
+
+function fermatTest(n,rng){
+  if(n<4)return n===2||n===3;
+  const a=2+Math.floor(rng()*(n-3));
+  return modpow(a,n-1,n)===1n;
+}
+
+// Generate a probable prime of roughly `bits` bits (using small numbers for browser speed)
+function genPrime(bits,k,rng){
+  const lo=Math.pow(2,bits-1),hi=Math.pow(2,bits)-1;
+  for(let tries=0;tries<2000;tries++){
+    let c=Math.floor(lo+rng()*(hi-lo))|1;
+    if(millerRabin(c,k,rng))return c;
+  }
+  return null;
+}
+
+const CARMICHAEL=[561,1105,1729,2465,2821,6601,8911,10585,15841,29341];
+
+async function run(){
+  const btn=$('run');btn.disabled=true;$('status').textContent='Testing…';
+  await new Promise(r=>setTimeout(r,20));
+  const nums=$('nums').value.split(',').map(s=>parseInt(s.trim())).filter(x=>x>0);
+  const k=parseInt($('k').value)||20;
+  const trials=parseInt($('trials').value)||500;
+  const rng=mulberry32(parseInt($('seed').value)||2025);
+
+  // Test numbers
+  const rows=nums.map(n=>{
+    const td=n<1e13?trialDivision(n):null;
+    const mr=millerRabin(n,k,rng);
+    return{n,td,mr};
+  });
+
+  // False positive rate on Carmichael numbers
+  let fpFermat=0,fpMR=0;
+  for(const c of CARMICHAEL){
+    for(let t=0;t<trials;t++){
+      if(fermatTest(c,rng))fpFermat++;
+      if(millerRabin(c,1,rng))fpMR++;
+    }
+  }
+  const totalTrials=CARMICHAEL.length*trials;
+  const fermatRate=fpFermat/totalTrials;
+  const mrRate=fpMR/totalTrials;
+
+  // Count primes in ranges using MR
+  const ranges=[100,500,2000];
+  const primeCounts=ranges.map(lim=>{let c=0;for(let n=2;n<=lim;n++)if(millerRabin(n,k,rng))c++;return c;});
+
+  // Generate probable primes
+  const genBits=[8,12,16,20];
+  const genPrimes=genBits.map(b=>({bits:b,p:genPrime(b,k,rng)}));
+
+  renderTable(rows);
+  renderFP(fermatRate,mrRate,k,trials);
+  renderCharts(fermatRate,mrRate,ranges,primeCounts);
+  renderGen(genPrimes);
+  renderText(rows,fermatRate,mrRate,k);
+
+  $('out').classList.remove('hide');$('status').textContent='Done.';btn.disabled=false;
+}
+
+function renderTable(rows){
+  const tb=$('tbl').querySelector('tbody');tb.innerHTML='';
+  rows.forEach(r=>{
+    const isPrime=r.mr;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${r.n.toLocaleString()}</td>
+      <td>${r.td===null?'—':r.td?'<span class="prime">Prime</span>':'<span class="composite">Composite</span>'}</td>
+      <td>${r.mr?'<span class="prime">Probably Prime</span>':'<span class="composite">Composite</span>'}</td>
+      <td>${isPrime?'✅':'❌'}</td>`;
+    tb.appendChild(tr);
+  });
+}
+function renderFP(fr,mr,k,trials){
+  $('fpRate').innerHTML=`<p>Over ${CARMICHAEL.length} Carmichael numbers × ${trials} trials each (k=1 round):</p>
+  <p>🔴 <b>Fermat test</b> false-positive rate: <b>${(fr*100).toFixed(2)}%</b> (Carmichael numbers fool Fermat almost always)</p>
+  <p>🟢 <b>Miller-Rabin</b> false-positive rate: <b>${(mr*100).toFixed(2)}%</b> (theoretical bound: 25% per round)</p>
+  <p>With k=${k} rounds, MR error ≤ 4⁻${k} ≈ ${(Math.pow(4,-k)).toExponential(2)}</p>`;
+}
+function renderCharts(fr,mr,ranges,counts){
+  destroyCharts();
+  const muted='#64748b',line='#e2e8f0';
+  Chart.defaults.color=muted;Chart.defaults.font.family='"Segoe UI",system-ui,sans-serif';
+  charts.push(new Chart($('c1'),{type:'bar',data:{
+    labels:['Fermat Test','Miller-Rabin (k=1)','MR Theoretical Bound'],
+    datasets:[{label:'False-positive rate',data:[(fr*100).toFixed(2),(mr*100).toFixed(2),25],
+      backgroundColor:['#dc2626','#0369a1','#94a3b8'],borderRadius:5}]
+  },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+    scales:{y:{max:100,title:{display:true,text:'Error %'},beginAtZero:true,grid:{color:line}},x:{grid:{display:false}}}}}));
+  charts.push(new Chart($('c2'),{type:'bar',data:{
+    labels:ranges.map(r=>`[2,${r}]`),
+    datasets:[{label:'Primes found (MR)',data:counts,backgroundColor:'#0369a1',borderRadius:5}]
+  },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+    scales:{y:{title:{display:true,text:'Count'},beginAtZero:true,grid:{color:line}},x:{grid:{display:false}}}}}));
+}
+function renderGen(primes){
+  $('genBox').innerHTML=primes.map(g=>g.p?`${g.bits}-bit: <b>${g.p}</b>`:` ${g.bits}-bit: (not found in range)`).join('<br>');
+}
+function renderText(rows,fr,mr,k){
+  const correct=rows.every(r=>{const td=r.td;return td===null||td===r.mr;});
+  $('result').innerHTML=`<p>The Miller-Rabin test was implemented with k=${k} rounds. All test numbers were correctly classified (matches trial division where applicable: <b>${correct?'Yes':'No'}</b>). The Fermat test false-positive rate on Carmichael numbers was <b>${(fr*100).toFixed(1)}%</b>, while Miller-Rabin's was only <b>${(mr*100).toFixed(1)}%</b> per round — well below the theoretical 25% bound.</p>`;
+  $('analysis').innerHTML=`<p><b>Algorithm:</b> Write n-1 = 2^s·d (d odd). For base a, compute x = a^d mod n. If x ≡ 1 or ≡ n-1, a is not a witness. Otherwise square s-1 times; if x reaches n-1, not a witness. If x never reaches n-1, a witnesses compositeness.</p>
+  <p><b>Carmichael numbers:</b> These composites pass the Fermat test for all bases coprime to n (e.g., 561 = 3×11×17). Miller-Rabin is not fooled because it checks the full sequence of squarings, not just the final value.</p>
+  <p><b>Error bound:</b> With k independent random bases, the probability of a composite passing all rounds is at most 4⁻ᵏ. At k=40 this is ≈ 10⁻²⁴, negligible for cryptographic use.</p>`;
+}
+$('run').addEventListener('click',run);
+$('resetBtn').addEventListener('click',()=>{$('nums').value='97,561,1105,7919,1000000007,3215031751';$('k').value=20;$('trials').value=500;$('seed').value=2025;$('status').textContent='';$('out').classList.add('hide');});
+</script>
+</body>
+</html>

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CP25C01 – Advanced Data Structures & Algorithms Lab</title>
+<style>
+:root {
+  --bg: #f1f5fb; --surface: #fff; --ink: #0f172a; --muted: #64748b;
+  --accent: #1e3a5f; --accent2: #2563eb; --line: #e2e8f0;
+  --radius: 12px; --shadow: 0 1px 4px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.06);
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #0d1117; --surface: #161b26; --ink: #e2e8f0; --muted: #8b97ab;
+    --accent: #38bdf8; --accent2: #60a5fa; --line: #1e2a3a; }
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.6 "Segoe UI", system-ui, sans-serif; min-height: 100vh; }
+
+header {
+  background: var(--accent);
+  color: #fff;
+  padding: 2rem 1.5rem 1.5rem;
+  text-align: center;
+}
+header h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: .01em; }
+header p  { margin-top: .4rem; font-size: .9rem; opacity: .8; }
+
+.badge {
+  display: inline-block; margin-top: .75rem;
+  background: rgba(255,255,255,.15); border-radius: 20px;
+  padding: .25rem .85rem; font-size: .8rem; letter-spacing: .03em;
+}
+
+main { max-width: 900px; margin: 2rem auto; padding: 0 1rem 3rem; }
+
+.unit-label {
+  font-size: .72rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--muted); margin: 2rem 0 .75rem;
+  padding-bottom: .4rem; border-bottom: 1px solid var(--line);
+}
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
+
+.card {
+  background: var(--surface); border-radius: var(--radius);
+  box-shadow: var(--shadow); border: 1px solid var(--line);
+  padding: 1.2rem 1.3rem;
+  text-decoration: none; color: inherit;
+  display: flex; gap: .9rem; align-items: flex-start;
+  transition: transform .15s, box-shadow .15s;
+}
+.card:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,.12); }
+
+.exp-num {
+  flex-shrink: 0;
+  width: 2.4rem; height: 2.4rem;
+  background: var(--accent2); color: #fff;
+  border-radius: 8px; display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: .9rem;
+}
+
+.card-body { flex: 1; }
+.card-body .label { font-size: .7rem; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; }
+.card-body .title { font-size: .92rem; font-weight: 600; margin-top: .15rem; line-height: 1.35; }
+
+footer {
+  text-align: center; font-size: .78rem; color: var(--muted);
+  padding: 1.5rem; border-top: 1px solid var(--line);
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>CP25C01 – Advanced Data Structures &amp; Algorithms Lab</h1>
+  <p>M.E – Computer Science &amp; Engineering &nbsp;|&nbsp; 2025 Regulation</p>
+  <span class="badge">Department of Computer Science &amp; Engineering</span>
+</header>
+
+<main>
+
+  <div class="unit-label">Unit 1 – Linear Data Structures &amp; Hashing</div>
+  <div class="grid">
+    <a class="card" href="ExpNo1/index.html">
+      <div class="exp-num">1</div>
+      <div class="card-body">
+        <div class="label">Experiment 1</div>
+        <div class="title">Skip Lists vs Balanced BST – Performance Comparison</div>
+      </div>
+    </a>
+    <a class="card" href="ExpNo2/index.html">
+      <div class="exp-num">2</div>
+      <div class="card-body">
+        <div class="label">Experiment 2</div>
+        <div class="title">Cache-Aware Data Structures &amp; Memory Utilization</div>
+      </div>
+    </a>
+  </div>
+
+  <div class="unit-label">Unit 2 – Advanced Tree Data Structures</div>
+  <div class="grid">
+    <a class="card" href="ExpNo3/index.html">
+      <div class="exp-num">3</div>
+      <div class="card-body">
+        <div class="label">Experiment 3</div>
+        <div class="title">B+ Tree for Database Indexing</div>
+      </div>
+    </a>
+    <a class="card" href="ExpNo4/index.html">
+      <div class="exp-num">4</div>
+      <div class="card-body">
+        <div class="label">Experiment 4</div>
+        <div class="title">Suffix Tree Algorithm for DNA Sequence Matching</div>
+      </div>
+    </a>
+  </div>
+
+  <div class="unit-label">Unit 3 – Graph Data Structures &amp; Algorithms</div>
+  <div class="grid">
+    <a class="card" href="ExpNo5/index.html">
+      <div class="exp-num">5</div>
+      <div class="card-body">
+        <div class="label">Experiment 5</div>
+        <div class="title">Johnson's Algorithm – Sparse Graph Shortest Paths</div>
+      </div>
+    </a>
+    <a class="card" href="ExpNo6/index.html">
+      <div class="exp-num">6</div>
+      <div class="card-body">
+        <div class="label">Experiment 6</div>
+        <div class="title">Maximum Flow in Traffic / Network Routing Simulation</div>
+      </div>
+    </a>
+  </div>
+
+  <div class="unit-label">Unit 4 – Algorithm Design &amp; Paradigms</div>
+  <div class="grid">
+    <a class="card" href="ExpNo7/index.html">
+      <div class="exp-num">7</div>
+      <div class="card-body">
+        <div class="label">Experiment 7</div>
+        <div class="title">Strassen's Algorithm vs Naive Matrix Multiplication</div>
+      </div>
+    </a>
+    <a class="card" href="ExpNo8/index.html">
+      <div class="exp-num">8</div>
+      <div class="card-body">
+        <div class="label">Experiment 8</div>
+        <div class="title">Miller-Rabin Randomized Primality Testing</div>
+      </div>
+    </a>
+  </div>
+
+  <div class="unit-label">Unit 5 – Complexity, Approximation &amp; Advanced Topics</div>
+  <div class="grid">
+    <a class="card" href="ExpNo9/index.html">
+      <div class="exp-num">9</div>
+      <div class="card-body">
+        <div class="label">Experiment 9</div>
+        <div class="title">Approximation Algorithm for Vertex Cover</div>
+      </div>
+    </a>
+    <a class="card" href="ExpNo10/index.html">
+      <div class="exp-num">10</div>
+      <div class="card-body">
+        <div class="label">Experiment 10</div>
+        <div class="title">NP-Hard Problem Complexity Analysis &amp; Heuristic</div>
+      </div>
+    </a>
+    <a class="card" href="ExpNo11/index.html">
+      <div class="exp-num">11</div>
+      <div class="card-body">
+        <div class="label">Experiment 11</div>
+        <div class="title">Randomized &amp; Streaming Algorithms on Real-World Datasets</div>
+      </div>
+    </a>
+    <a class="card" href="ExpNo12/index.html">
+      <div class="exp-num">12</div>
+      <div class="card-body">
+        <div class="label">Experiment 12</div>
+        <div class="title">Parallel &amp; Distributed Algorithm Design</div>
+      </div>
+    </a>
+  </div>
+
+</main>
+
+<footer>
+  CP25C01 &nbsp;·&nbsp; Advanced Data Structures &amp; Algorithms Lab &nbsp;·&nbsp; CIT
+</footer>
+
+</body>
+</html>

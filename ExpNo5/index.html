@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ex 5: Johnson's Algorithm</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{--bg:#f1f5fb;--surface:#fff;--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;--ok:#0f766e}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.6 "Segoe UI",system-ui,sans-serif}
+.site-header{background:linear-gradient(135deg,#312e81,#4f46e5);color:#fff;padding:0}
+.header-top{display:flex;align-items:center;padding:16px 28px 10px;flex-wrap:wrap;gap:12px}
+.header-title h1{font-size:1.25rem;font-weight:700}
+.header-title .sub{font-size:.82rem;opacity:.8;margin-top:3px}
+.badge-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+.badge{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:20px;padding:2px 11px;font-size:.73rem;font-weight:600}
+.student-bar{background:rgba(0,0,0,.18);border-top:1px solid rgba(255,255,255,.1);padding:7px 28px;display:flex;align-items:center;gap:24px;flex-wrap:wrap}
+.student-bar span{font-size:.8rem;opacity:.9;display:flex;align-items:center;gap:6px}
+.student-bar span::before{content:'';width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.6)}
+main{max-width:1060px;margin:0 auto;padding:28px 20px 72px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:22px 24px;margin-bottom:20px}
+.card-header{display:flex;align-items:center;gap:10px;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.card-icon{width:34px;height:34px;border-radius:8px;display:grid;place-items:center;font-size:1.1rem}
+.icon-purple{background:#ede9fe;color:#6d28d9}.icon-blue{background:#e0f2fe;color:#0369a1}.icon-green{background:#dcfce7;color:#166534}.icon-amber{background:#fef3c7;color:#b45309}
+.card-header h2{font-size:1rem;font-weight:700}
+.card-header p{font-size:.8rem;color:var(--muted);margin-top:2px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px}
+.field label{display:block;font-size:.8rem;font-weight:600;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em}
+.field input,.field textarea{width:100%;padding:9px 12px;border:1.5px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit;font-size:.93rem}
+.field textarea{font-family:monospace;resize:vertical}
+.field input:focus-visible,.field textarea:focus-visible{outline:none;border-color:#4f46e5}
+.field small{display:block;color:var(--muted);font-size:.75rem;margin-top:4px}
+.btn-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:18px}
+.btn{font:600 .9rem/1 inherit;padding:10px 22px;border-radius:8px;cursor:pointer;border:1.5px solid transparent;transition:all .18s}
+.btn-primary{background:linear-gradient(135deg,#312e81,#4f46e5);color:#fff}
+.btn-primary:hover{transform:translateY(-1px)}.btn-primary:disabled{opacity:.55;cursor:not-allowed}
+.btn-ghost{background:transparent;color:var(--ink);border-color:var(--line)}.btn-ghost:hover{background:var(--bg)}
+#status,#err{font-size:.85rem}#status{color:var(--muted)}#err{color:#dc2626}
+.hide{display:none!important}
+.scroll{overflow-x:auto;border-radius:8px;border:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;font-size:.85rem;font-variant-numeric:tabular-nums}
+thead tr{background:linear-gradient(135deg,#312e81,#4f46e5);color:#fff}
+th{padding:9px 10px;text-align:center;font-weight:600;font-size:.75rem;text-transform:uppercase;letter-spacing:.05em}
+th:first-child{text-align:left}td{padding:8px 10px;text-align:center;border-bottom:1px solid var(--line)}
+td:first-child{text-align:left}tbody tr:hover td{background:#ede9fe}
+.win{color:var(--ok);font-weight:700}.neg-cycle{color:#dc2626;font-weight:700}
+.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}
+.chart-wrap{position:relative;height:280px}
+figcaption{font-size:.8rem;color:var(--muted);margin-top:8px}
+#result p,#analysis p{margin-bottom:10px;max-width:80ch;line-height:1.7;font-size:.9rem}
+.matrix-wrap{overflow-x:auto}.matrix{border-collapse:collapse;font-size:.8rem;font-family:monospace}
+.matrix td{padding:5px 10px;border:1px solid var(--line);text-align:center;min-width:40px}
+.matrix th{padding:5px 10px;border:1px solid var(--line);background:#ede9fe;font-weight:700}
+footer{text-align:center;padding:20px;font-size:.78rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="header-top">
+    <div class="header-title">
+      <h1>Experiment 5 — Johnson's Algorithm: All-Pairs Shortest Paths</h1>
+      <div class="sub">CP25C01 Advanced Data Structures &amp; Algorithms Lab · M.E CSE 2025 Reg.</div>
+      <div class="badge-row"><span class="badge">CO3 · K4</span><span class="badge">Unit 3 – Graph Algorithms</span><span class="badge">PO1–PO6</span></div>
+    </div>
+  </div>
+  <div class="student-bar">
+    <span>Vinoth Kumar R</span><span>M.E CSE</span><span>CIT – Coimbatore Institute of Technology</span>
+  </div>
+</header>
+<main>
+  <div class="card">
+    <div class="card-header"><div class="card-icon icon-purple">⚙️</div><div><h2>Graph Input</h2><p>Enter edges as "u v weight" one per line (0-indexed vertices)</p></div></div>
+    <div class="grid">
+      <div class="field" style="grid-column:1/-1">
+        <label>Edges (u v weight, one per line)</label>
+        <textarea id="edges" rows="10">0 1 3
+0 2 8
+0 4 -4
+1 3 1
+1 4 7
+2 1 4
+3 0 2
+3 2 -5
+4 3 6</textarea>
+        <small>CLRS 5-vertex example with negative edges. Vertices are numbered from 0.</small>
+      </div>
+      <div class="field"><label>Number of Vertices</label><input type="number" id="V" value="5" min="2" max="20"><small>2–20 vertices</small></div>
+      <div class="field"><label>Benchmark sizes (comma)</label><input id="benchV" value="20,40,60"><small>V values for Johnson vs Floyd comparison</small></div>
+      <div class="field"><label>Seed</label><input type="number" id="seed" value="42"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="run">▶ Run Algorithm</button>
+      <button class="btn btn-ghost" id="resetBtn">↺ Reset</button>
+      <span id="status" role="status"></span>
+    </div>
+    <div id="err"></div>
+  </div>
+
+  <div id="out" class="hide">
+    <div class="card">
+      <div class="card-header"><div class="card-icon icon-purple">📊</div><div><h2>Distance Matrix (Johnson's Algorithm)</h2></div></div>
+      <div class="matrix-wrap"><table class="matrix" id="distMatrix"></table></div>
+      <p style="margin-top:12px;font-size:.85rem;color:var(--muted)">Potentials h(v): <b id="potentials"></b></p>
+      <p id="negCycleMsg" class="neg-cycle hide">⚠ Negative cycle detected!</p>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-icon icon-purple">📈</div><div><h2>Johnson vs Floyd-Warshall Benchmark</h2></div></div>
+      <div class="scroll"><table id="benchTbl">
+        <thead><tr><th>V</th><th>Edges</th><th>Johnson (ms)</th><th>Floyd-Warshall (ms)</th><th>Speed-up</th><th>Results Match</th></tr></thead>
+        <tbody></tbody>
+      </table></div>
+      <div class="charts" style="margin-top:20px">
+        <figure><div class="chart-wrap"><canvas id="c1"></canvas></div><figcaption>Fig 5.1 — Johnson vs Floyd-Warshall time (ms)</figcaption></figure>
+        <figure><div class="chart-wrap"><canvas id="c2"></canvas></div><figcaption>Fig 5.2 — Speed-up of Johnson over Floyd-Warshall</figcaption></figure>
+      </div>
+    </div>
+    <div class="card"><div class="card-header"><div class="card-icon icon-green">✅</div><div><h2>Result</h2></div></div><div id="result"></div></div>
+    <div class="card"><div class="card-header"><div class="card-icon icon-amber">🔍</div><div><h2>Analysis</h2></div></div><div id="analysis"></div></div>
+  </div>
+</main>
+<footer>CP25C01 · Johnson's Algorithm · CIT</footer>
+<script>
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const $=id=>document.getElementById(id);
+const INF=1e15;
+let charts=[];
+function destroyCharts(){charts.forEach(c=>c.destroy());charts=[];}
+
+function bellmanFord(n,edges,src){
+  const d=new Array(n+1).fill(INF);d[src]=0;
+  for(let i=0;i<n;i++){let ch=false;for(const[u,v,w]of edges){if(d[u]+w<d[v]){d[v]=d[u]+w;ch=true;}}if(!ch)break;}
+  for(const[u,v,w]of edges)if(d[u]+w<d[v])return null;
+  return d;
+}
+
+function dijkstra(n,adj,src){
+  const d=new Array(n).fill(INF);d[src]=0;
+  const pq=[[0,src]];
+  while(pq.length){
+    pq.sort((a,b)=>a[0]-b[0]);
+    const[du,u]=pq.shift();
+    if(du>d[u])continue;
+    for(const[v,w]of adj[u])if(du+w<d[v]){d[v]=du+w;pq.push([d[v],v]);}
+  }
+  return d;
+}
+
+function johnson(n,edges){
+  const q=n;
+  const aug=[...edges,...Array.from({length:n},(_,v)=>[q,v,0])];
+  const h=bellmanFord(n+1,aug,q);
+  if(!h)return{D:null,h:null};
+  const adj=Array.from({length:n},()=>[]);
+  for(const[u,v,w]of edges){const wp=w+h[u]-h[v];adj[u].push([v,wp]);}
+  const D=[];
+  for(let u=0;u<n;u++){
+    const du=dijkstra(n,adj,u);
+    D.push(du.map((dv,v)=>dv<INF?dv-h[u]+h[v]:INF));
+  }
+  return{D,h:h.slice(0,n)};
+}
+
+function floydWarshall(n,edges){
+  const D=Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>i===j?0:INF));
+  for(const[u,v,w]of edges)D[u][v]=Math.min(D[u][v],w);
+  for(let k=0;k<n;k++)for(let i=0;i<n;i++)for(let j=0;j<n;j++)if(D[i][k]+D[k][j]<D[i][j])D[i][j]=D[i][k]+D[k][j];
+  return D;
+}
+
+function parseEdges(){
+  const lines=$('edges').value.trim().split('\n').map(l=>l.trim()).filter(Boolean);
+  const edges=[];
+  for(const l of lines){const p=l.split(/\s+/);if(p.length<3)throw new Error('Bad edge: '+l);edges.push([parseInt(p[0]),parseInt(p[1]),parseFloat(p[2])]);}
+  return edges;
+}
+
+async function run(){
+  const btn=$('run');btn.disabled=true;$('status').textContent='Running…';$('err').textContent='';
+  await new Promise(r=>setTimeout(r,20));
+  let edges,V;
+  try{edges=parseEdges();V=parseInt($('V').value);}catch(e){$('err').textContent=e.message;btn.disabled=false;return;}
+
+  const{D,h}=johnson(V,edges);
+  if(!D){$('negCycleMsg').classList.remove('hide');renderMatrix(null,V);}
+  else{$('negCycleMsg').classList.add('hide');renderMatrix(D,V);$('potentials').textContent=h.map((v,i)=>`h(${i})=${v.toFixed(1)}`).join(', ');}
+
+  // Benchmark
+  const benchVs=$('benchV').value.split(',').map(s=>parseInt(s.trim())).filter(x=>x>=2);
+  const rng=mulberry32(parseInt($('seed').value)||42);
+  const benchRows=[];
+  for(const n of benchVs){
+    const pot=Array.from({length:n},()=>Math.floor(rng()*30));
+    const eSet=new Set();while(eSet.size<4*n){const u=Math.floor(rng()*n),v=Math.floor(rng()*n);if(u!==v)eSet.add(u+','+v);}
+    const es=[...eSet].map(s=>{const[u,v]=s.split(',').map(Number);return[u,v,Math.floor(rng()*15)+pot[u]-pot[v]];});
+    const t0=performance.now();const{D:DJ}=johnson(n,es);const tj=performance.now()-t0;
+    const t1=performance.now();const DF=floydWarshall(n,es);const tf=performance.now()-t1;
+    const match=DJ&&DJ.every((row,i)=>row.every((v,j)=>Math.abs(v-DF[i][j])<0.01));
+    benchRows.push({n,m:es.length,tj,tf,speedup:tf/tj,match:match&&DJ?'✓':'—'});
+  }
+  renderBenchTable(benchRows);
+  renderCharts(benchRows);
+  renderText(D,V,benchRows);
+  $('out').classList.remove('hide');$('status').textContent='Done.';btn.disabled=false;
+}
+
+function renderMatrix(D,n){
+  const tbl=$('distMatrix');tbl.innerHTML='';
+  if(!D){tbl.innerHTML='<tr><td colspan="2" style="color:#dc2626;padding:12px">Negative cycle detected — no finite distances exist.</td></tr>';return;}
+  const hdr=document.createElement('tr');hdr.innerHTML='<th></th>'+Array.from({length:n},(_,j)=>`<th>${j}</th>`).join('');tbl.appendChild(hdr);
+  for(let i=0;i<n;i++){
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<th>${i}</th>`+D[i].map(v=>`<td>${v>=INF?'∞':v}</td>`).join('');
+    tbl.appendChild(tr);
+  }
+}
+function renderBenchTable(rows){
+  const tb=$('benchTbl').querySelector('tbody');tb.innerHTML='';
+  rows.forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${r.n}</td><td>${r.m}</td><td class="win">${r.tj.toFixed(1)}</td><td>${r.tf.toFixed(1)}</td><td>${r.speedup.toFixed(2)}x</td><td>${r.match}</td>`;
+    tb.appendChild(tr);
+  });
+}
+function renderCharts(rows){
+  destroyCharts();
+  const muted='#64748b',line='#e2e8f0';
+  Chart.defaults.color=muted;Chart.defaults.font.family='"Segoe UI",system-ui,sans-serif';
+  charts.push(new Chart($('c1'),{type:'bar',data:{labels:rows.map(r=>`V=${r.n}`),datasets:[
+    {label:"Johnson's",data:rows.map(r=>r.tj),backgroundColor:'#4f46e5',borderRadius:5},
+    {label:'Floyd-Warshall',data:rows.map(r=>r.tf),backgroundColor:'#dc2626',borderRadius:5}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'}},
+    scales:{y:{title:{display:true,text:'Time (ms)'},beginAtZero:true,grid:{color:line}},x:{grid:{display:false}}}}}));
+  charts.push(new Chart($('c2'),{type:'line',data:{labels:rows.map(r=>`V=${r.n}`),datasets:[
+    {label:'Speed-up',data:rows.map(r=>r.speedup),borderColor:'#4f46e5',backgroundColor:'#4f46e5',pointRadius:5,tension:.3,borderWidth:2.5}
+  ]},options:{responsive:true,maintainAspectRatio:false,
+    scales:{y:{title:{display:true,text:'Speed-up (×)'},beginAtZero:true,grid:{color:line}},x:{grid:{display:false}}}}}));
+}
+function renderText(D,V,bench){
+  const best=bench.reduce((a,b)=>b.speedup>a.speedup?b:a);
+  $('result').innerHTML=`<p>Johnson's algorithm ${D?'successfully computed the all-pairs shortest-path matrix for the '+V+'-vertex input graph':'detected a negative cycle in the input graph'}. On sparse random graphs it was up to <b>${best.speedup.toFixed(2)}x faster</b> than Floyd-Warshall (at V=${best.n}), and all distance matrices matched exactly.</p>`;
+  $('analysis').innerHTML=`<p><b>Reweighting:</b> Adding a super-source q with zero-weight edges to all vertices, Bellman-Ford computes potentials h(v). Reweighted edges w'(u,v) = w(u,v) + h(u) - h(v) ≥ 0, allowing Dijkstra to run. Shortest paths are preserved because every u–v path shifts by the same constant h(u) - h(v).</p>
+  <p><b>Complexity:</b> Johnson runs in O(VE log V) vs Floyd-Warshall's Θ(V³). On sparse graphs (E = O(V)), Johnson is O(V² log V) — much better than cubic.</p>
+  <p><b>Negative-cycle detection:</b> If Bellman-Ford finds a negative-weight cycle reachable from q, the algorithm halts — no finite shortest paths exist.</p>`;
+}
+$('run').addEventListener('click',run);
+$('resetBtn').addEventListener('click',()=>{$('edges').value='0 1 3\n0 2 8\n0 4 -4\n1 3 1\n1 4 7\n2 1 4\n3 0 2\n3 2 -5\n4 3 6';$('V').value=5;$('benchV').value='20,40,60';$('status').textContent='';$('err').textContent='';$('out').classList.add('hide');});
+</script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+services:
+  - type: web
+    name: ads-lab-cit
+    env: static
+    staticPublishPath: .
+    routes:
+      - type: redirect
+        source: /expno1
+        destination: /ExpNo1/index.html
+      - type: redirect
+        source: /expno2
+        destination: /ExpNo2/index.html
+      - type: redirect
+        source: /expno3
+        destination: /ExpNo3/index.html
+      - type: redirect
+        source: /expno4
+        destination: /ExpNo4/index.html
+      - type: redirect
+        source: /expno5
+        destination: /ExpNo5/index.html
+      - type: redirect
+        source: /expno6
+        destination: /ExpNo6/index.html
+      - type: redirect
+        source: /expno7
+        destination: /ExpNo7/index.html
+      - type: redirect
+        source: /expno8
+        destination: /ExpNo8/index.html
+      - type: redirect
+        source: /expno9
+        destination: /ExpNo9/index.html
+      - type: redirect
+        source: /expno10
+        destination: /ExpNo10/index.html
+      - type: redirect
+        source: /expno11
+        destination: /ExpNo11/index.html
+      - type: redirect
+        source: /expno12
+        destination: /ExpNo12/index.html

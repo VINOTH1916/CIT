@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ex 2: Cache-Aware Data Structures</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{--bg:#f1f5fb;--surface:#fff;--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;--accent:#0369a1;--accent2:#2563eb;--ok:#0f766e;--warn:#b45309;--radius:12px;--shadow:0 1px 4px rgba(0,0,0,.08),0 4px 16px rgba(0,0,0,.06)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.6 "Segoe UI",system-ui,sans-serif}
+.site-header{background:linear-gradient(135deg,#1e3a5f,#2563eb);color:#fff;padding:0;box-shadow:0 2px 12px rgba(30,58,95,.35)}
+.header-top{display:flex;align-items:center;justify-content:space-between;padding:16px 28px 10px;flex-wrap:wrap;gap:12px}
+.header-title h1{font-size:1.25rem;font-weight:700}
+.header-title .sub{font-size:.82rem;opacity:.8;margin-top:3px}
+.badge-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+.badge{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:20px;padding:2px 11px;font-size:.73rem;font-weight:600}
+.student-bar{background:rgba(0,0,0,.18);border-top:1px solid rgba(255,255,255,.1);padding:7px 28px;display:flex;align-items:center;gap:24px;flex-wrap:wrap}
+.student-bar span{font-size:.8rem;opacity:.9;display:flex;align-items:center;gap:6px}
+.student-bar span::before{content:'';width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.6);flex-shrink:0}
+main{max-width:1060px;margin:0 auto;padding:28px 20px 72px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px 24px;margin-bottom:20px}
+.card-header{display:flex;align-items:center;gap:10px;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.card-icon{width:34px;height:34px;border-radius:8px;display:grid;place-items:center;font-size:1.1rem;flex-shrink:0}
+.icon-blue{background:#e0f2fe;color:#0369a1}.icon-green{background:#dcfce7;color:#166534}.icon-amber{background:#fef3c7;color:#b45309}.icon-purple{background:#ede9fe;color:#6d28d9}
+.card-header h2{font-size:1rem;font-weight:700}
+.card-header p{font-size:.8rem;color:var(--muted);margin-top:2px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px}
+.field label{display:block;font-size:.8rem;font-weight:600;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em}
+.field input,.field select{width:100%;padding:9px 12px;border:1.5px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit;font-size:.93rem;transition:border-color .18s}
+.field input:focus-visible,.field select:focus-visible{outline:none;border-color:var(--accent2)}
+.field small{display:block;color:var(--muted);font-size:.75rem;margin-top:4px}
+.btn-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:18px}
+.btn{font:600 .9rem/1 inherit;padding:10px 22px;border-radius:8px;cursor:pointer;border:1.5px solid transparent;transition:all .18s;display:inline-flex;align-items:center;gap:7px}
+.btn-primary{background:linear-gradient(135deg,#1e3a5f,#2563eb);color:#fff;box-shadow:0 2px 8px rgba(37,99,235,.3)}
+.btn-primary:hover{transform:translateY(-1px)}.btn-primary:disabled{opacity:.55;cursor:not-allowed}
+.btn-ghost{background:transparent;color:var(--ink);border-color:var(--line)}.btn-ghost:hover{background:var(--bg)}
+#status{color:var(--muted);font-size:.85rem}
+.hide{display:none!important}
+.scroll{overflow-x:auto;border-radius:8px;border:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;min-width:500px;font-variant-numeric:tabular-nums;font-size:.88rem}
+thead tr{background:linear-gradient(135deg,#1e3a5f,#2563eb);color:#fff}
+th{padding:10px 12px;text-align:center;font-weight:600;font-size:.78rem;text-transform:uppercase;letter-spacing:.05em}
+th:first-child{text-align:left}td{padding:9px 12px;text-align:center;border-bottom:1px solid var(--line)}
+td:first-child{text-align:left}
+tbody tr:hover td{background:#e0f2fe}
+.win{color:var(--ok);font-weight:700}
+.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}
+.chart-wrap{position:relative;height:300px}
+figcaption{font-size:.8rem;color:var(--muted);margin-top:8px}
+#result p,#analysis p{margin-bottom:10px;max-width:80ch;line-height:1.7;font-size:.9rem}
+footer{text-align:center;padding:20px;font-size:.78rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="header-top">
+    <div class="header-title">
+      <h1>Experiment 2 — Cache-Aware Data Structures &amp; Memory Utilization</h1>
+      <div class="sub">CP25C01 Advanced Data Structures &amp; Algorithms Lab · M.E CSE 2025 Reg.</div>
+      <div class="badge-row">
+        <span class="badge">CO1 · K3</span><span class="badge">Unit 1 – Linear Data Structures</span><span class="badge">PO1–PO6</span>
+      </div>
+    </div>
+  </div>
+  <div class="student-bar">
+    <span>Vinoth Kumar R</span><span>M.E CSE</span><span>CIT – Coimbatore Institute of Technology</span>
+  </div>
+</header>
+<main>
+  <div class="card">
+    <div class="card-header"><div class="card-icon icon-blue">⚙️</div><div><h2>Simulation Inputs</h2><p>Configure matrix size, tile sizes, sensor record count and pointer-chain length</p></div></div>
+    <div class="grid">
+      <div class="field"><label>Matrix Size (n)</label><input type="number" id="matN" value="512" min="64" max="2048" step="64"><small>n×n float matrix (powers of 2 work best)</small></div>
+      <div class="field"><label>Tile sizes (comma)</label><input id="tileSizes" value="16,64,256"><small>Block transpose tile sizes to test</small></div>
+      <div class="field"><label>Sensor Records (N)</label><input type="number" id="sensorN" value="100000" min="1000" max="500000" step="1000"><small>AoS vs SoA comparison</small></div>
+      <div class="field"><label>Linked List Length</label><input type="number" id="listN" value="50000" min="1000" max="200000" step="1000"><small>Pointer-chasing vs array scan</small></div>
+      <div class="field"><label>Seed</label><input type="number" id="seed" value="42"><small>Random seed</small></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="run">▶ Run Experiment</button>
+      <button class="btn btn-ghost" id="resetBtn">↺ Reset</button>
+      <span id="status" role="status"></span>
+    </div>
+  </div>
+
+  <div id="out" class="hide">
+    <div class="card">
+      <div class="card-header"><div class="card-icon icon-blue">📊</div><div><h2>Results</h2></div></div>
+      <div class="scroll"><table id="tbl">
+        <thead><tr><th>Experiment</th><th>Method</th><th>Time (ms)</th><th>Slowdown / Speedup</th><th>Memory</th></tr></thead>
+        <tbody></tbody>
+      </table></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-icon icon-purple">📈</div><div><h2>Graphical Analysis</h2></div></div>
+      <div class="charts">
+        <figure><div class="chart-wrap"><canvas id="c1"></canvas></div><figcaption>Fig 2.1 — Row vs Column traversal and blocked transpose time (ms)</figcaption></figure>
+        <figure><div class="chart-wrap"><canvas id="c2"></canvas></div><figcaption>Fig 2.2 — AoS vs SoA scan time and memory (MB)</figcaption></figure>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-icon icon-green">✅</div><div><h2>Result</h2></div></div>
+      <div id="result"></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-icon icon-amber">🔍</div><div><h2>Analysis</h2></div></div>
+      <div id="analysis"></div>
+    </div>
+  </div>
+</main>
+<footer>CP25C01 · Cache-Aware Data Structures · CIT</footer>
+<script>
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const $=id=>document.getElementById(id);
+let charts=[];
+function destroyCharts(){charts.forEach(c=>c.destroy());charts=[]}
+
+// Simulate matrix traversal: row-wise is faster because JS arrays are row-major
+function simMatrixTraversal(n, rng){
+  const A = new Float64Array(n*n);
+  for(let i=0;i<n*n;i++) A[i]=rng();
+  // Row-wise
+  let t0=performance.now(), s=0;
+  for(let i=0;i<n;i++) for(let j=0;j<n;j++) s+=A[i*n+j];
+  const rowMs = performance.now()-t0;
+  // Col-wise
+  t0=performance.now(); s=0;
+  for(let j=0;j<n;j++) for(let i=0;i<n;i++) s+=A[i*n+j];
+  const colMs = performance.now()-t0;
+  return {rowMs, colMs, slowdown: colMs/rowMs};
+}
+
+// Simulate blocked transpose
+function simTranspose(n, tileSizes, rng){
+  const A = new Float64Array(n*n);
+  for(let i=0;i<n*n;i++) A[i]=rng();
+  const B = new Float64Array(n*n);
+  // Naive
+  let t0=performance.now();
+  for(let i=0;i<n;i++) for(let j=0;j<n;j++) B[j*n+i]=A[i*n+j];
+  const naiveMs = performance.now()-t0;
+  const results=[{tile:'Naive', ms:naiveMs, speedup:1}];
+  for(const bs of tileSizes){
+    t0=performance.now();
+    for(let ii=0;ii<n;ii+=bs) for(let jj=0;jj<n;jj+=bs){
+      const iiE=Math.min(ii+bs,n), jjE=Math.min(jj+bs,n);
+      for(let i=ii;i<iiE;i++) for(let j=jj;j<jjE;j++) B[j*n+i]=A[i*n+j];
+    }
+    const bMs=performance.now()-t0;
+    results.push({tile:`Block ${bs}`, ms:bMs, speedup:naiveMs/bMs});
+  }
+  return results;
+}
+
+// Simulate AoS vs SoA
+function simAoSSoA(N, rng){
+  // AoS: array of objects with 3 fields
+  const t0=performance.now();
+  const aos=[];
+  for(let i=0;i<N;i++) aos.push({id:i, temp:20+rng()*20, humidity:30+rng()*60});
+  const aosBuildMs=performance.now()-t0;
+  // AoS scan
+  let t1=performance.now(), s=0;
+  for(let i=0;i<N;i++) s+=aos[i].temp;
+  const aosScanMs=performance.now()-t1;
+  // approx memory: ~112 bytes/object in JS
+  const aosMemMB = N*112/1e6;
+
+  // SoA: typed arrays
+  const t2=performance.now();
+  const ids=new Int32Array(N), temps=new Float64Array(N), hums=new Float64Array(N);
+  for(let i=0;i<N;i++){ids[i]=i;temps[i]=20+rng()*20;hums[i]=30+rng()*60;}
+  const soaBuildMs=performance.now()-t2;
+  let t3=performance.now(); s=0;
+  for(let i=0;i<N;i++) s+=temps[i];
+  const soaScanMs=performance.now()-t3;
+  const soaMemMB = (N*4+N*8+N*8)/1e6;
+
+  return {aosScanMs, soaScanMs, aosMemMB, soaMemMB, speedup:aosScanMs/soaScanMs, memSave:100*(1-soaMemMB/aosMemMB)};
+}
+
+// Simulate pointer-chasing vs array scan
+function simPointerChase(M, rng){
+  // Array scan
+  const arr = new Float64Array(M);
+  for(let i=0;i<M;i++) arr[i]=rng();
+  let t0=performance.now(), s=0;
+  for(let i=0;i<M;i++) s+=arr[i];
+  const arrMs=performance.now()-t0;
+  // Simulate random-access pattern (stride random)
+  const perm=[];
+  for(let i=0;i<M;i++) perm.push(i);
+  for(let i=M-1;i>0;i--){const j=Math.floor(rng()*(i+1));[perm[i],perm[j]]=[perm[j],perm[i]];}
+  t0=performance.now(); s=0;
+  for(let k=0;k<M;k++) s+=arr[perm[k]];
+  const listMs=performance.now()-t0;
+  return {arrMs, listMs, slowdown:listMs/arrMs};
+}
+
+async function run(){
+  const btn=$('run');btn.disabled=true;
+  $('status').textContent='Running…';
+  await new Promise(r=>setTimeout(r,20));
+
+  const n=parseInt($('matN').value)||512;
+  const tiles=$('tileSizes').value.split(',').map(s=>parseInt(s.trim())).filter(x=>x>0);
+  const sN=parseInt($('sensorN').value)||100000;
+  const lN=parseInt($('listN').value)||50000;
+  const rng=mulberry32(parseInt($('seed').value)||42);
+
+  const trav=simMatrixTraversal(n,rng);
+  await new Promise(r=>setTimeout(r,10));
+  const trans=simTranspose(Math.min(n,256),tiles,rng);
+  await new Promise(r=>setTimeout(r,10));
+  const aos=simAoSSoA(sN,rng);
+  await new Promise(r=>setTimeout(r,10));
+  const pc=simPointerChase(lN,rng);
+
+  renderTable(n,trav,trans,aos,pc,sN,lN);
+  renderCharts(trav,trans,aos);
+  renderResult(trav,trans,aos,pc,n,sN,lN);
+
+  $('out').classList.remove('hide');
+  $('status').textContent='Done.';btn.disabled=false;
+}
+
+function renderTable(n,trav,trans,aos,pc,sN,lN){
+  const tb=$('tbl').querySelector('tbody');tb.innerHTML='';
+  const rows=[
+    ['Matrix Traversal','Row-wise',trav.rowMs.toFixed(1),'baseline','—'],
+    ['Matrix Traversal','Col-wise',trav.colMs.toFixed(1),`${trav.slowdown.toFixed(2)}x slower`,'—'],
+    ...trans.map(r=>['Blocked Transpose',r.tile,r.ms.toFixed(1),r.speedup===1?'baseline':`${r.speedup.toFixed(2)}x faster`,'—']),
+    [`AoS vs SoA (${sN.toLocaleString()})','AoS scan`,aos.aosScanMs.toFixed(2),'baseline',`~${aos.aosMemMB.toFixed(1)} MB`],
+    [`AoS vs SoA','SoA scan`,aos.soaScanMs.toFixed(2),`${aos.speedup.toFixed(1)}x faster`,`~${aos.soaMemMB.toFixed(1)} MB`],
+    [`Pointer Chase (${lN.toLocaleString()})','Array scan`,pc.arrMs.toFixed(2),'baseline','—'],
+    [`Pointer Chase','Random access`,pc.listMs.toFixed(2),`${pc.slowdown.toFixed(1)}x slower`,'—'],
+  ];
+  rows.forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${r[0]}</td><td><b>${r[1]}</b></td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td>`;
+    tb.appendChild(tr);
+  });
+}
+
+function renderCharts(trav,trans,aos){
+  destroyCharts();
+  const muted='#64748b',line='#e2e8f0',ink='#0f172a';
+  Chart.defaults.color=muted;Chart.defaults.font.family='"Segoe UI",system-ui,sans-serif';
+
+  charts.push(new Chart($('c1'),{type:'bar',data:{
+    labels:['Row-wise','Col-wise',...trans.map(r=>r.tile)],
+    datasets:[{label:'Time (ms)',data:[trav.rowMs,trav.colMs,...trans.map(r=>r.ms)],
+      backgroundColor:['#2563eb','#dc2626',...trans.map((_,i)=>i===0?'#64748b':i===1?'#0369a1':'#0ea5e9')],borderRadius:5}]
+  },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+    scales:{y:{title:{display:true,text:'Time (ms)',color:muted},beginAtZero:true,grid:{color:line}},x:{grid:{display:false}}}}}));
+
+  charts.push(new Chart($('c2'),{type:'bar',data:{
+    labels:['AoS Scan (ms)','SoA Scan (ms)','AoS Mem (MB)','SoA Mem (MB)'],
+    datasets:[{label:'Value',data:[aos.aosScanMs,aos.soaScanMs,aos.aosMemMB,aos.soaMemMB],
+      backgroundColor:['#dc2626','#0369a1','#dc2626','#0369a1'],borderRadius:5}]
+  },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+    scales:{y:{beginAtZero:true,grid:{color:line}},x:{grid:{display:false}}}}}));
+}
+
+function renderResult(trav,trans,aos,pc,n,sN,lN){
+  const best=trans.reduce((a,b)=>b.speedup>a.speedup?b:a);
+  $('result').innerHTML=`<p>Cache-aware layouts produced measurable gains. Row-wise traversal of an ${n}×${n} matrix was <b>${trav.slowdown.toFixed(2)}x faster</b> than column-wise traversal. The best tiling was <b>${best.tile}</b> (${best.speedup.toFixed(2)}x speedup over naive transpose). The SoA layout used only <b>${aos.soaMemMB.toFixed(1)} MB</b> vs <b>${aos.aosMemMB.toFixed(1)} MB</b> for AoS (${aos.memSave.toFixed(1)}% saved) and scanned <b>${aos.speedup.toFixed(1)}x faster</b>. Random-access pointer chasing was <b>${pc.slowdown.toFixed(1)}x slower</b> than a contiguous array scan over ${lN.toLocaleString()} elements.</p>`;
+  $('analysis').innerHTML=`<p><b>Traversal:</b> Row-wise access reads all 8 doubles in each 64-byte cache line before evicting it (n²/B misses). Column-wise access touches one double per cache line (up to n² misses), causing ${trav.slowdown.toFixed(2)}x slowdown.</p>
+  <p><b>Blocking:</b> ${best.tile} tiles fit in L1/L2 cache (two b×b tiles of float64). Smaller tiles add loop overhead; larger tiles overflow the cache and lose the benefit — the curve is U-shaped.</p>
+  <p><b>Layout:</b> SoA stores raw 8-byte doubles contiguously; AoS stores JavaScript objects with per-object headers and pointers (~112 bytes/record). The temp scan touches only the temps array in SoA, achieving high spatial locality.</p>
+  <p><b>Pointer chasing:</b> Each linked-list node resides at a random address, so every access is a cache miss. The array scan prefetches ahead automatically, giving orders-of-magnitude better throughput.</p>`;
+}
+
+$('run').addEventListener('click',run);
+$('resetBtn').addEventListener('click',()=>{$('matN').value=512;$('tileSizes').value='16,64,256';$('sensorN').value=100000;$('listN').value=50000;$('seed').value=42;$('status').textContent='';});
+</script>
+</body>
+</html>
